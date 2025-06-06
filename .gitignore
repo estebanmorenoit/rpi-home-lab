@@ -1,0 +1,51 @@
+# Docker Compose logs and volumes
+*.log
+*.pid
+*.db
+*.sock
+
+# Env and secrets
+.env
+secrets/
+**/*secrets*/**
+
+# Ignore only generated data/volumes, keep config/customizations
+caddy_data/
+caddy_config/
+adguard/work/
+adguard/conf/filters/
+adguard/conf/rewrite.txt
+adguard/conf/blocked_services.txt
+adguard/conf/safebrowsing.txt
+
+# Keep essential AdGuard config
+!adguard/conf/
+
+loki/chunks/
+!loki/config/
+
+uptime-kuma/data/
+!uptime-kuma/custom/
+
+# Home Assistant: ignore generated files, keep user configs and custom components
+homeassistant/
+
+portainer/  # All volume data can be safely regenerated
+promtail/   # Assuming configs are inline or rebuilt
+
+homepage/logs/
+!homepage/config.json
+!homepage/bookmarks.yaml
+!homepage/services.yaml
+!homepage/widgets.yaml
+
+# Node, Python, or Next.js cache (just in case)
+__pycache__/
+*.pyc
+.next/
+node_modules/
+
+# System files
+.DS_Store
+Thumbs.db
+portainer/

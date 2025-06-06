@@ -1,0 +1,14 @@
+---
+- Monitoring:
+    - Home Assistant:
+        - abbr: HA
+          href: http://homeassistant.home
+    - AdGuard:
+        - abbr: AG
+          href: http://adguard.home
+    - Grafana:
+        - abbr: GF
+          href: http://grafana.home
+    - Prometheus:
+        - abbr: PR
+          href: http://prometheus.home
