@@ -1,0 +1,17 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/services/
+
+- Smart Home:
+    - Home Assistant:
+        - icon: home-assistant.png
+          href: http://homeassistant.home
+
+- Network:
+    - AdGuard:
+        - icon: adguard.png
+          href: http://adguard.home
+    - Tailscale:
+        - abbr: TS
+          href: https://login.tailscale.com
+

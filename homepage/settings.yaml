@@ -1,0 +1,17 @@
+---
+allow_hosts:
+  - '*'
+
+title: "Pi Dashboard"
+theme: dark
+color: slate
+
+providers:
+  openweathermap: YOUR_OPENWEATHERMAP_API_KEY
+  weatherapi: YOUR_WEATHERAPI_API_KEY
+
+layout:
+  columns: 3
+  width: 300
+  gap: 20
+

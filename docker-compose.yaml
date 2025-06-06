@@ -1,0 +1,297 @@
+version: "3.9"
+
+services:
+
+  # -----------------------------
+  # 🏠 Core Services
+  # -----------------------------
+
+  # Home Assistant
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    volumes:
+      - ./homeassistant:/config
+    privileged: true
+    network_mode: host
+    environment:
+      - TZ=${TZ}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # AdGuard Home (DNS + DHCP)
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard
+    restart: unless-stopped
+    volumes:
+      - ./adguard/work:/opt/adguardhome/work
+      - ./adguard/conf:/opt/adguardhome/conf
+    ports:
+    #   - "8080:80"
+    #   - "3000:3000"
+      - "53:53/tcp"
+      - "53:53/udp"
+    environment:
+      - TZ=${TZ}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+  # -----------------------------
+  # 📊 Monitoring Stack
+  # -----------------------------
+
+  # Prometheus (metrics database)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'   # Keep only 7 days
+      - '--storage.tsdb.path=/prometheus'
+    # ports:
+    #   - "9090:9090"
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+  # Node Exporter (host metrics)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    # ports:
+    #   - "9100:9100"
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    read_only: true
+    networks:
+      - internal
+
+  # cAdvisor (container metrics)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    # ports:
+    #   - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    environment:
+      - TZ=${TZ}
+    read_only: true
+    networks:
+      - internal
+
+  # Grafana (dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    # ports:
+    #   - "3001:3000"
+    volumes:
+      # Persistent storage managed by Docker
+      - grafana-storage:/var/lib/grafana
+      # Provisioning and dashboards from host
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - TZ=${TZ}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+  # Loki (logs database)
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    # ports:
+    #   - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki:/etc/loki
+      - ./loki/chunks:/loki/chunks
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+  # Promtail (log collector)
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - /etc/machine-id:/etc/machine-id
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail:/etc/promtail
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+  
+  # Uptime Kuma (self-hosted uptime monitor)
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    # ports:
+    #   - "3003:3001"
+    volumes:
+      - ./uptime-kuma/data:/app/data
+    environment:
+      - TZ=${TZ}
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+    
+  # -----------------------------
+  # 🛠 Management & Admin
+  # -----------------------------
+
+  # Portainer (UI for Docker)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer:/data
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+  # Watchtower (auto-updater)
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # - WATCHTOWER_NOTIFICATION_URL=telegram://YOUR_TELEGRAM_BOT_TOKEN@telegram?channels=YOUR_CHAT_ID
+    networks:
+      - internal
+
+  # Homepage (dashboard UI)
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    volumes:
+      - ./homepage:/app/config
+    # ports:
+    #   - "3002:3000"
+    restart: unless-stopped
+    environment:
+      - HOMEPAGE_ALLOWED_HOSTS=*
+      - TZ=${TZ}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://0.0.0.0:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+  # -----------------------------
+  # 🌐 Reverse Proxy
+  # -----------------------------
+
+  # Caddy (HTTPS reverse proxy)
+  caddy:
+    image: caddy:latest
+    container_name: caddy-proxy
+    restart: always 
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      homepage:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      homeassistant:
+        condition: service_started
+      adguard:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+    environment:
+      - TZ=${TZ}
+      - EMAIL=${EMAIL}
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+      - frontend
+
+# -----------------------------
+# 🔌 Networks & Volumes
+# -----------------------------
+
+networks:
+  internal:
+  frontend:
+
+volumes:
+  caddy_data:
+  caddy_config:
+  grafana-storage:
