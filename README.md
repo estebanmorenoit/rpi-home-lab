@@ -25,7 +25,7 @@ A lightweight and extensible Docker-based home lab setup for Raspberry Pi. This 
 
 - Raspberry Pi (64-bit OS)
 - Docker + Docker Compose installed
-- `.home` domain resolution set up (e.g. via Pi-hole, AdGuard, or `/etc/hosts`)
+- `.home` domain resolution set up using **AdGuard Home** or by editing `/etc/hosts`
 - Public IP or static LAN IP for reverse proxy
 
 ---
@@ -39,7 +39,17 @@ git clone https://github.com/yourusername/docker-stack.git
 cd docker-stack
 ```
 
-### 2. Prepare Home Assistant Config
+### 2. Configure AdGuard Home (DNS)
+
+Access AdGuard Home at `http://<your-pi-ip>:3000` to complete the onboarding wizard:
+
+- Set DNS ports (default is 53)
+- Define upstream DNS servers (e.g., 1.1.1.1, 8.8.8.8)
+- Set admin credentials
+
+Then ensure AdGuard Home is your network’s primary DNS server and configure a rewrite or DNS entry for `*.home` domains pointing to your Pi.
+
+### 3. Prepare Home Assistant Config
 
 Copy the example configuration to enable proxy access on new setups:
 
@@ -49,7 +59,48 @@ cp homeassistant/configuration.yaml.example homeassistant/configuration.yaml
 
 This ensures Home Assistant is configured to work behind a reverse proxy like Caddy.
 
-### 3. Edit the Caddyfile
+The file `homeassistant/configuration.yaml.example` includes a basic setup with trusted proxies:
+
+```yaml
+default_config:
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.16.0.0/12
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+lovelace:
+  mode: "storage"
+  resources:
+    - url: "/hacsfiles/button-card/button-card.js"
+      type: "module"
+    # Add other resources here...
+```
+
+### 4. Create the `.env` File
+
+Set your environment-specific variables:
+
+```bash
+echo "TZ=Europe/London" >> .env
+echo "EMAIL=your-email@example.com" >> .env
+```
+
+Or edit it manually:
+
+```env
+TZ=Europe/London
+EMAIL=your-email@example.com
+```
+
+### 5. Edit the Caddyfile
 
 Ensure all services are routed properly:
 
@@ -61,15 +112,15 @@ http://grafana.home {
 
 Add routes for all required services.
 
-### 4. Start the Stack
+### 6. Start the Stack
 
 ```bash
 docker compose up -d
 ```
 
-### 5. Optional: Local DNS or Hosts File
+### 7. Optional: Local DNS or Hosts File
 
-Add entries to your DNS server or `/etc/hosts`:
+If not using AdGuard Home, add entries to your local `/etc/hosts` file:
 
 ```
 192.168.1.100 grafana.home prometheus.home portainer.home homeassistant.home ...
@@ -127,48 +178,6 @@ crontab -l
 
 - **Prometheus**: use `--storage.tsdb.retention.time=7d`
 - **Loki**: configure chunk retention if using file/S3 storage
-
----
-
-## Configuration Details
-
-### Example `.env` File
-
-This file holds environment-specific variables. Create it in the root of your project directory:
-
-```env
-TZ=Europe/London
-EMAIL=your-email@example.com
-```
-
-### Home Assistant Configuration
-
-The file `homeassistant/configuration.yaml.example` includes a basic setup with trusted proxies:
-
-```yaml
-default_config:
-
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 172.16.0.0/12
-
-frontend:
-  themes: !include_dir_merge_named themes
-
-automation: !include automations.yaml
-script: !include scripts.yaml
-scene: !include scenes.yaml
-
-lovelace:
-  mode: "storage"
-  resources:
-    - url: "/hacsfiles/button-card/button-card.js"
-      type: "module"
-    # Add other resources here...
-```
-
-Copy this file to `homeassistant/configuration.yaml` and modify as needed.
 
 ---
 
