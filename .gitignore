@@ -1,51 +1,63 @@
-# Docker Compose logs and volumes
-*.log
+# --------------------------------------
+# ⚙️ Runtime & Temp Data
+# --------------------------------------
+*/data/
+*/work/
+*/chunks/
 *.pid
-*.db
 *.sock
+*.db
 
-# Env and secrets
+# --------------------------------------
+# 🔐 Secrets & Environment
+# --------------------------------------
 .env
 secrets/
 **/*secrets*/**
 
-# Ignore only generated data/volumes, keep config/customizations
-caddy_data/
-caddy_config/
-adguard/work/
-adguard/conf/filters/
-adguard/conf/rewrite.txt
-adguard/conf/blocked_services.txt
-adguard/conf/safebrowsing.txt
-
-# Keep essential AdGuard config
-!adguard/conf/
-
-loki/chunks/
-!loki/config/
-
-uptime-kuma/data/
-!uptime-kuma/custom/
-
-# Home Assistant: ignore generated files, keep user configs and custom components
+# --------------------------------------
+# 🚫 Ignore full app data but keep config
+# --------------------------------------
+adguard/
 homeassistant/
+!homeassistant/configuration.yaml.example
 
-portainer/  # All volume data can be safely regenerated
-promtail/   # Assuming configs are inline or rebuilt
+# Data replaced by named volumes
+portainer/
+uptime-kuma/
+grafana/
+prometheus/
 
-homepage/logs/
-!homepage/config.json
+# Keep only config for these
+!grafana/provisioning/
+!grafana/dashboards/
+!prometheus/prometheus.yml
+!loki/config/
+!loki/local-config.yaml
+!promtail/config.yml
+
+# Homepage config (only keep these)
+homepage/
 !homepage/bookmarks.yaml
+!homepage/custom.css
+!homepage/custom.js
+!homepage/docker.yaml
+!homepage/kubernetes.yaml
 !homepage/services.yaml
+!homepage/settings.yaml
 !homepage/widgets.yaml
 
-# Node, Python, or Next.js cache (just in case)
+# --------------------------------------
+# 🧹 Logs, Caches, Build Artifacts
+# --------------------------------------
+*.log
 __pycache__/
 *.pyc
-.next/
 node_modules/
+.next/
 
-# System files
+# --------------------------------------
+# 🖥 System Files
+# --------------------------------------
 .DS_Store
 Thumbs.db
-portainer/

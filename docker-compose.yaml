@@ -10,7 +10,7 @@ services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./homeassistant:/config
     privileged: true
@@ -29,13 +29,12 @@ services:
   adguard:
     image: adguard/adguardhome:latest
     container_name: adguard
-    restart: unless-stopped
+    restart: always
     volumes:
-      - ./adguard/work:/opt/adguardhome/work
-      - ./adguard/conf:/opt/adguardhome/conf
+      - adguard-config:/opt/adguardhome
     ports:
-    #   - "8080:80"
-    #   - "3000:3000"
+      - "8080:80"
+      - "3000:3000"
       - "53:53/tcp"
       - "53:53/udp"
     environment:
@@ -59,14 +58,15 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-storage:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'   # Keep only 7 days
       - '--storage.tsdb.path=/prometheus'
     # ports:
     #   - "9090:9090"
-    restart: unless-stopped
+    restart: always
     environment:
       - TZ=${TZ}
     healthcheck:
@@ -78,6 +78,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - internal
+
 
   # Node Exporter (host metrics)
   node-exporter:
@@ -118,11 +119,10 @@ services:
     # ports:
     #   - "3001:3000"
     volumes:
-      # Persistent storage managed by Docker
       - grafana-storage:/var/lib/grafana
       # Provisioning and dashboards from host
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
       - TZ=${TZ}
     healthcheck:
@@ -165,6 +165,8 @@ services:
       - /etc/machine-id:/etc/machine-id
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./promtail:/etc/promtail
+    environment:
+      - TZ=${TZ}
     command: -config.file=/etc/promtail/config.yml
     restart: unless-stopped
     labels:
@@ -180,7 +182,7 @@ services:
     # ports:
     #   - "3003:3001"
     volumes:
-      - ./uptime-kuma/data:/app/data
+      - uptime-kuma-storage:/app/data
     environment:
       - TZ=${TZ}
     labels:
@@ -200,7 +202,7 @@ services:
       - "9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer:/data
+      - portainer-storage:/data
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -228,7 +230,15 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     volumes:
-      - ./homepage:/app/config
+      - homepage-storage:/app/config
+      - ./homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
+      - ./homepage/services.yaml:/app/config/services.yaml:ro
+      - ./homepage/widgets.yaml:/app/config/widgets.yaml:ro
+      - ./homepage/settings.yaml:/app/config/settings.yaml:ro
+      - ./homepage/docker.yaml:/app/config/docker.yaml:ro
+      - ./homepage/kubernetes.yaml:/app/config/kubernetes.yaml:ro
+      - ./homepage/custom.css:/app/config/custom.css:ro
+      - ./homepage/custom.js:/app/config/custom.js:ro
     # ports:
     #   - "3002:3000"
     restart: unless-stopped
@@ -258,7 +268,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
@@ -295,3 +305,9 @@ volumes:
   caddy_data:
   caddy_config:
   grafana-storage:
+  prometheus-storage:
+  uptime-kuma-storage:
+  portainer-storage:
+  homepage-storage:
+  homeassistant-config:
+  adguard-config:

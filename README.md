@@ -1,3 +1,4 @@
+
 # Raspberry Pi Docker Home Lab Stack
 
 A lightweight and extensible Docker-based home lab setup for Raspberry Pi. This stack includes system monitoring, network-level DNS/ad blocking, log aggregation, smart home integration, and a reverse proxy with local `.home` domains.
@@ -24,7 +25,7 @@ A lightweight and extensible Docker-based home lab setup for Raspberry Pi. This 
 
 - Raspberry Pi (64-bit OS)
 - Docker + Docker Compose installed
-- `.home` domain resolution set up (e.g. via Pi-hole, AdGuard, or /etc/hosts)
+- `.home` domain resolution set up (e.g. via Pi-hole, AdGuard, or `/etc/hosts`)
 - Public IP or static LAN IP for reverse proxy
 
 ---
@@ -38,7 +39,17 @@ git clone https://github.com/yourusername/docker-stack.git
 cd docker-stack
 ```
 
-### 2. Edit the Caddyfile
+### 2. Prepare Home Assistant Config
+
+Copy the example configuration to enable proxy access on new setups:
+
+```bash
+cp homeassistant/configuration.yaml.example homeassistant/configuration.yaml
+```
+
+This ensures Home Assistant is configured to work behind a reverse proxy like Caddy.
+
+### 3. Edit the Caddyfile
 
 Ensure all services are routed properly:
 
@@ -48,20 +59,20 @@ http://grafana.home {
 }
 ```
 
-Add more routes as needed.
+Add routes for all required services.
 
-### 3. Start the Stack
+### 4. Start the Stack
 
 ```bash
 docker compose up -d
 ```
 
-### 4. Optional: Local DNS or Hosts File
+### 5. Optional: Local DNS or Hosts File
 
 Add entries to your DNS server or `/etc/hosts`:
 
 ```
-192.168.1.100 grafana.home prometheus.home portainer.home ...
+192.168.1.100 grafana.home prometheus.home portainer.home homeassistant.home ...
 ```
 
 Replace `192.168.1.100` with your Pi’s IP.
@@ -114,8 +125,8 @@ crontab -l
 
 ## 📉 Data Retention Suggestions
 
-- **Prometheus**: add flag `--storage.tsdb.retention.time=7d`
-- **Loki**: configure retention if using filesystem/S3
+- **Prometheus**: use `--storage.tsdb.retention.time=7d`
+- **Loki**: configure chunk retention if using file/S3 storage
 
 ---
 
@@ -127,72 +138,42 @@ This file holds environment-specific variables. Create it in the root of your pr
 
 ```env
 TZ=Europe/London
+EMAIL=your-email@example.com
 ```
 
-### Example `docker-compose.yml`
+### Home Assistant Configuration
 
-This example shows the core layout, organized into categories:
+The file `homeassistant/configuration.yaml.example` includes a basic setup with trusted proxies:
 
 ```yaml
-version: "3.9"
+default_config:
 
-services:
-  # === Dashboards and UIs ===
-  homepage:
-    image: ghcr.io/gethomepage/homepage:latest
-    ...
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.16.0.0/12
 
-  grafana:
-    image: grafana/grafana:latest
-    ...
+frontend:
+  themes: !include_dir_merge_named themes
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    ...
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
 
-  # === Monitoring and Logging ===
-  prometheus:
-    image: prom/prometheus:latest
-    ...
-
-  loki:
-    image: grafana/loki:latest
-    ...
-
-  promtail:
-    image: grafana/promtail:latest
-    ...
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    ...
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    ...
-
-  # === DNS and Proxy ===
-  adguard:
-    image: adguard/adguardhome:latest
-    ...
-
-  caddy-proxy:
-    image: caddy:latest
-    ...
-
-  # === Home Automation ===
-  homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
-    ...
-
-  # === Container Updates ===
-  watchtower:
-    image: containrrr/watchtower:latest
-    ...
+lovelace:
+  mode: "storage"
+  resources:
+    - url: "/hacsfiles/button-card/button-card.js"
+      type: "module"
+    # Add other resources here...
 ```
+
+Copy this file to `homeassistant/configuration.yaml` and modify as needed.
+
 ---
 
 ## Notes
 
-- Ensure all `docker-compose.yml` paths and port mappings suit your network setup.
+- Validate paths, volumes, and permissions for your specific Pi or network.
 - Backups are recommended before major changes.
+- For new setups, ensure configuration templates are copied before launching containers.
