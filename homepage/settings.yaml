@@ -1,4 +1,3 @@
----
 allow_hosts:
   - '*'
 
@@ -7,7 +6,7 @@ theme: dark
 color: slate
 
 providers:
-  openweathermap: YOUR_OPENWEATHERMAP_API_KEY
+  openweathermap: d5f41e42d8d9b1c1f1894c09d85367d0
   weatherapi: YOUR_WEATHERAPI_API_KEY
 
 layout:
@@ -15,3 +14,5 @@ layout:
   width: 300
   gap: 20
 
+experimental:
+  disableLegacyWidgets: false

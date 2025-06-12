@@ -8,7 +8,7 @@ services:
 
   # Home Assistant
   homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
+    image: ghcr.io/home-assistant/home-assistant:2025.5
     container_name: homeassistant
     restart: always
     volumes:
@@ -27,7 +27,7 @@ services:
 
   # AdGuard Home (DNS + DHCP)
   adguard:
-    image: adguard/adguardhome:latest
+    image: adguard/adguardhome:v0.107.62
     container_name: adguard
     restart: always
     volumes:
@@ -55,7 +55,7 @@ services:
 
   # Prometheus (metrics database)
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.4.1
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -82,7 +82,7 @@ services:
 
   # Node Exporter (host metrics)
   node-exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.9.1
     container_name: node-exporter
     # ports:
     #   - "9100:9100"
@@ -95,7 +95,7 @@ services:
 
   # cAdvisor (container metrics)
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.52.0
     container_name: cadvisor
     restart: unless-stopped
     # ports:
@@ -113,7 +113,7 @@ services:
 
   # Grafana (dashboards)
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.0.1
     container_name: grafana
     restart: unless-stopped
     # ports:
@@ -137,7 +137,7 @@ services:
 
   # Loki (logs database)
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.4.4
     container_name: loki
     # ports:
     #   - "3100:3100"
@@ -158,7 +158,7 @@ services:
 
   # Promtail (log collector)
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:3.4.4
     container_name: promtail
     volumes:
       - /var/log:/var/log
@@ -176,19 +176,48 @@ services:
   
   # Uptime Kuma (self-hosted uptime monitor)
   uptime-kuma:
-    image: louislam/uptime-kuma:latest
+    image: louislam/uptime-kuma:1.23.16
     container_name: uptime-kuma
     restart: unless-stopped
     # ports:
     #   - "3003:3001"
     volumes:
       - uptime-kuma-storage:/app/data
+    dns:
+      - 192.168.6.59
     environment:
       - TZ=${TZ}
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - internal
+
+  # Speedtest Tracker
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:1.6.1
+    container_name: speedtest-tracker
+    restart: always
+    # ports:
+    #   - "8765:80"   # Custom HTTP port (change if using HTTPS or want to expose 443 too)
+    #   - "8443:443"  # Optional: expose HTTPS port if needed
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - APP_KEY=${APP_KEY}              # Set in .env or replace directly here
+      - DB_CONNECTION=sqlite
+      - APP_DEBUG=true
+      - SPEEDTEST_SCHEDULE="17 * * * *"
+    volumes:
+      - speedtest_config:/config
+      # Optional: uncomment if using custom SSL certs
+      # - ./speedtest-tracker/ssl:/config/keys
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    networks:
+      - internal
+
+
     
   # -----------------------------
   # 🛠 Management & Admin
@@ -196,7 +225,7 @@ services:
 
   # Portainer (UI for Docker)
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.31.0
     container_name: portainer
     ports:
       - "9000:9000"
@@ -209,28 +238,29 @@ services:
     networks:
       - internal
 
-  # Watchtower (auto-updater)
-  watchtower:
-    image: containrrr/watchtower:latest
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    environment:
-      - TZ=${TZ}
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LABEL_ENABLE=true
-      # - WATCHTOWER_NOTIFICATIONS=shoutrrr
-      # - WATCHTOWER_NOTIFICATION_URL=telegram://YOUR_TELEGRAM_BOT_TOKEN@telegram?channels=YOUR_CHAT_ID
-    networks:
-      - internal
+  # # Watchtower (auto-updater)
+  # watchtower:
+  #   image: containrrr/watchtower:1.7.1
+  #   container_name: watchtower
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   restart: unless-stopped
+  #   environment:
+  #     - TZ=${TZ}
+  #     - WATCHTOWER_CLEANUP=true
+  #     - WATCHTOWER_LABEL_ENABLE=true
+  #     - WATCHTOWER_NOTIFICATIONS=shoutrrr
+  #     - WATCHTOWER_NOTIFICATION_URL=telegram://8053089884:AAE3ke-ZaFl2Z6ejYAL-ZChL6nTBuywBQ6Q@telegram?channels=-4812444281
+  #   networks:
+  #     - internal
 
   # Homepage (dashboard UI)
   homepage:
-    image: ghcr.io/gethomepage/homepage:latest
+    image: ghcr.io/gethomepage/homepage:v1.3.1
     container_name: homepage
     volumes:
       - homepage-storage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
       - ./homepage/services.yaml:/app/config/services.yaml:ro
       - ./homepage/widgets.yaml:/app/config/widgets.yaml:ro
@@ -261,7 +291,7 @@ services:
 
   # Caddy (HTTPS reverse proxy)
   caddy:
-    image: caddy:latest
+    image: caddy:2.10.0
     container_name: caddy-proxy
     restart: always 
     ports:
@@ -311,3 +341,4 @@ volumes:
   homepage-storage:
   homeassistant-config:
   adguard-config:
+  speedtest_config:

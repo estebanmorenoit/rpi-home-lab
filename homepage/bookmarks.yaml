@@ -1,14 +1,25 @@
----
-- Monitoring:
-    - Home Assistant:
-        - abbr: HA
-          href: http://homeassistant.home
-    - AdGuard:
-        - abbr: AG
-          href: http://adguard.home
+- Tailscale Links:
+    - Homepage:
+        - icon: homepage
+          href: http://homepage.tail
     - Grafana:
-        - abbr: GF
-          href: http://grafana.home
+        - icon: grafana
+          href: http://grafana.tail
     - Prometheus:
-        - abbr: PR
-          href: http://prometheus.home
+        - icon: prometheus
+          href: http://prometheus.tail
+    - Portainer:
+        - icon: portainer
+          href: http://portainer.tail
+    - Home Assistant:
+        - icon: home-assistant
+          href: http://homeassistant.tail
+    - AdGuard Home:
+        - icon: adguard-home
+          href: http://adguard.tail
+    - Uptime Kuma:
+        - icon: uptime-kuma
+          href: http://uptimekuma.tail
+    - Speedtest Tracker:
+        - icon: myspeed
+          href: http://speedtest.tail
