@@ -1,14 +1,27 @@
----
-# For configuration options and examples, please see:
-# https://gethomepage.dev/configs/info-widgets/
-
+# Top bar widgets
+# - greeting:
+#     label: Greeting
+#     text: "Hello, Esteban!"
 - resources:
-    label: Pi 4
+    label: Raspbery Pi 4
     cpu: true
     memory: true
     disk: /
     uptime: true
+- openweathermap:
+    label: London
+    latitude: 51.5074
+    longitude: -0.1278
+    units: metric
+    provider: openweathermap
+    cache: 5
+    format:
+      maximumFractionDigits: 1
 
+- datetime:
+    label: Local Time
+    format: "dddd, MMMM Do YYYY, h:mm:ss A"
 - search:
     provider: duckduckgo
     target: _blank
+

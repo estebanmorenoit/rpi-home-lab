@@ -38,6 +38,7 @@ prometheus/
 
 # Homepage config (only keep these)
 homepage/
+!homepage/
 !homepage/bookmarks.yaml
 !homepage/custom.css
 !homepage/custom.js
