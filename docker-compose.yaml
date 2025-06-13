@@ -58,7 +58,7 @@ services:
     image: prom/prometheus:v3.4.1
     container_name: prometheus
     volumes:
-      - ./prometheus:/etc/prometheus:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-storage:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -143,7 +143,7 @@ services:
     #   - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./loki:/etc/loki
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro
       - ./loki/chunks:/loki/chunks
     restart: unless-stopped
     healthcheck:
