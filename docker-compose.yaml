@@ -139,9 +139,9 @@ services:
   loki:
     image: grafana/loki:3.4.4
     container_name: loki
-    command: -config.file=/etc/loki-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./loki/local-config.yaml:/etc/loki-config.yaml:ro
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro  # ✅ clear file-to-file mapping
       - ./loki/chunks:/loki/chunks
     restart: unless-stopped
     healthcheck:
@@ -153,7 +153,6 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - internal
-
 
   # Promtail (log collector)
   promtail:
