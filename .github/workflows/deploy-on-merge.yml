@@ -8,16 +8,14 @@ on:
 jobs:
   deploy:
     name: Update and Restart Docker Compose Stack
-    runs-on: [self-hosted, homelab]  # ✅ Targets your GitHub Actions runner
+    runs-on: [self-hosted, homelab]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4   # ✅ Pulls latest code (e.g., updated compose file)
-
       - name: Pull latest images
-        run: |
-          docker compose pull       # ✅ Pulls updated image tags
+        run: docker compose -p docker-stack pull
+        working-directory: /home/esteban/docker-stack
 
-      - name: Restart containers with updated images
-        run: |
-          docker compose -p "" up -d --no-build --remove-orphans  # ✅ Forces consistent container names
+      - name: Restart containers
+        run: docker compose -p docker-stack up -d --no-build --remove-orphans
+        working-directory: /home/esteban/docker-stack
+
