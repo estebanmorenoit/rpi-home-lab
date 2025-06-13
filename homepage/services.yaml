@@ -40,7 +40,7 @@
           type: portainer
           url: http://portainer.home
           env: 3
-          key: ptr_oOcDnxyUI8wXaraSkPrb7mTd8hxq9pMWSzeaidi4Y7c=
+          key: ptr_d7eZEd5vktQu9DHzQGwXzxA6puULh/rfMkh+MzzLR5I=
 
 - DNS & Network:
     - AdGuard Home:
