@@ -10,9 +10,13 @@ jobs:
     runs-on: [self-hosted, homelab]
     defaults:
       run:
-        working-directory: /home/esteban/docker-stack  # 👈 use host path directly
+        shell: sh
+        working-directory: /workdir
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Pull latest images
         run: docker compose -p docker-stack pull
 
