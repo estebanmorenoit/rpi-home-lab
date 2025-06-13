@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          path: /workdir  # 👈 critical fix here
 
       - name: Pull latest images
         run: docker compose -p docker-stack pull
