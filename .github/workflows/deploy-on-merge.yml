@@ -17,12 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug Loki config in GitHub runner
-        run: |
-          echo "WORKDIR: $PWD"
-          ls -l ./loki
-          file ./loki/local-config.yaml
-
       - name: Pull latest images
         run: docker compose -p docker-stack pull
 
