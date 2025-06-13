@@ -58,10 +58,10 @@ services:
     image: prom/prometheus:v3.4.1
     container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/prometheus.yml:/etc/prom-config/prometheus.yml:ro
       - prometheus-storage:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--config.file=/etc/prom-config/prometheus.yml'
       - '--storage.tsdb.retention.time=7d'   # Keep only 7 days
       - '--storage.tsdb.path=/prometheus'
     # ports:
