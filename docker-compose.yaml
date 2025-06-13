@@ -143,7 +143,7 @@ services:
     #   - "3100:3100"
     command: -config.file=/etc/loki-config/local-config.yaml
     volumes:
-      - ./loki/local-config.yaml:/etc/loki-config/local-config.yaml:ro
+      - ./loki:/etc/loki-config:ro
       - ./loki/chunks:/loki/chunks
     restart: unless-stopped
     healthcheck:
@@ -164,10 +164,10 @@ services:
       - /var/log:/var/log
       - /etc/machine-id:/etc/machine-id
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./promtail:/etc/promtail
+      - ./promtail:/etc/promtail-config:ro
     environment:
       - TZ=${TZ}
-    command: -config.file=/etc/promtail/config.yml
+    command: -config.file=/etc/promtail-config/promtail.yaml
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
