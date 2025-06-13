@@ -275,11 +275,11 @@ services:
     environment:
       - HOMEPAGE_ALLOWED_HOSTS=*
       - TZ=${TZ}
-    healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://0.0.0.0:3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget --spider -q http://0.0.0.0:3000 || exit 1"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -302,8 +302,6 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      homepage:
-        condition: service_healthy
       grafana:
         condition: service_healthy
       prometheus:
