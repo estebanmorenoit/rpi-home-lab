@@ -3,20 +3,21 @@ name: Deploy Updated Stack
 on:
   push:
     branches:
-      - main  # Trigger on merge into main
+      - main  # Or whatever branch Renovate merges into
 
 jobs:
   deploy:
-    name: Pull and Recreate Docker Stack
-    runs-on: [self-hosted, homelab]  # Match your runner's labels
+    name: Update and Restart Docker Compose Stack
+    runs-on: [self-hosted, homelab]
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Pull latest images
-        run: docker compose pull $(docker compose config --services | grep -v github-runner)
+        run: |
+          docker compose pull
 
-      - name: Recreate updated services
-        run: docker compose up -d --force-recreate --no-deps $(docker compose config --services | grep -v github-runner)
-
+      - name: Restart containers with updated images
+        run: |
+          docker compose up -d --no-build --remove-orphans
