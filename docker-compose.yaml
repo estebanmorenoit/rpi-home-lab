@@ -329,7 +329,7 @@ services:
     restart: unless-stopped
     environment:
       - RUNNER_NAME=rpi-homelab-github-runner
-      - RUNNER_WORKDIR=/tmp/github-runner
+      - RUNNER_WORKDIR=/workdir
       - REPO_URL=https://github.com/estebanmorenoit/rpi-home-lab
       - ACCESS_TOKEN=REDACTED_TOKEN
       - TZ=${TZ}
