@@ -1,0 +1,12 @@
+﻿{
+  "repositoryName": "estebanmorenoit/rpi-home-lab",
+  "pipelineDirectory": "rpi-home-lab",
+  "workspaceDirectory": "rpi-home-lab/rpi-home-lab",
+  "repositories": {
+    "estebanmorenoit/rpi-home-lab": {
+      "repositoryPath": "rpi-home-lab/rpi-home-lab",
+      "lastRunOn": "06/13/2025 13:06:37 +01:00"
+    }
+  },
+  "lastRunOn": "06/13/2025 13:06:37 +01:00"
+}
