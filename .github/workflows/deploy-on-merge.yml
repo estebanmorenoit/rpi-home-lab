@@ -15,7 +15,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Pull latest images
-        run: docker compose pull
+        run: docker compose pull $(docker compose config --services | grep -v github-runner)
 
-      - name: Recreate containers
-        run: docker compose up -d $(docker compose config --services | grep -v github-runner)
+      - name: Recreate updated services
+        run: docker compose up -d --force-recreate --no-deps $(docker compose config --services | grep -v github-runner)
+
