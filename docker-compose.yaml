@@ -323,6 +323,31 @@ services:
       - internal
       - frontend
 
+  # -----------------------------
+  # 🚀 GitHub Actions Runner
+  # -----------------------------
+
+  github-runner:
+    image: myoung34/github-runner:latest
+    container_name: github-runner
+    restart: unless-stopped
+    environment:
+      - RUNNER_NAME=rpi-homelab-github-runner
+      - RUNNER_WORKDIR=/tmp/github-runner
+      - REPO_URL=https://github.com/estebanmorenoit/rpi-home-lab
+      - ACCESS_TOKEN=REDACTED_TOKEN
+      - TZ=${TZ}
+      - RUNNER_GROUP=default
+      - RUNNER_SCOPE=repo
+      - LABELS=homelab,docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - internal
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+
 # -----------------------------
 # 🔌 Networks & Volumes
 # -----------------------------
