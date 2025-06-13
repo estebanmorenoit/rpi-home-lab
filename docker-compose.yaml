@@ -141,9 +141,9 @@ services:
     container_name: loki
     # ports:
     #   - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki-config/local-config.yaml
     volumes:
-      - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro
+      - ./loki/local-config.yaml:/etc/loki-config/local-config.yaml:ro
       - ./loki/chunks:/loki/chunks
     restart: unless-stopped
     healthcheck:
