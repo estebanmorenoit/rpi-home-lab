@@ -326,6 +326,7 @@ services:
   # -----------------------------
   # 🚀 GitHub Actions Runner
   # -----------------------------
+
   github-runner:
     image: myoung34/github-runner:latest
     container_name: github-runner
@@ -334,7 +335,7 @@ services:
       - RUNNER_NAME=rpi-homelab-github-runner
       - RUNNER_WORKDIR=/tmp/github-runner
       - REPO_URL=https://github.com/estebanmorenoit/rpi-home-lab
-      - ACCESS_TOKEN=${GH_RUNNER_TOKEN}
+      - ACCESS_TOKEN=REDACTED_TOKEN
       - TZ=${TZ}
       - RUNNER_GROUP=default
       - RUNNER_SCOPE=repo
@@ -346,6 +347,7 @@ services:
       - internal
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+
 
 # -----------------------------
 # 🔌 Networks & Volumes
