@@ -3,21 +3,21 @@ name: Deploy Updated Stack
 on:
   push:
     branches:
-      - main  # Or whatever branch Renovate merges into
+      - main  # Triggered on push to main (e.g. Renovate merge)
 
 jobs:
   deploy:
     name: Update and Restart Docker Compose Stack
-    runs-on: [self-hosted, homelab]
+    runs-on: [self-hosted, homelab]  # ✅ Targets your GitHub Actions runner
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4   # ✅ Pulls latest code (e.g., updated compose file)
 
       - name: Pull latest images
         run: |
-          docker compose pull
+          docker compose pull       # ✅ Pulls updated image tags
 
       - name: Restart containers with updated images
         run: |
-          docker compose up -d --no-build --remove-orphans
+          docker compose -p "" up -d --no-build --remove-orphans  # ✅ Forces consistent container names
