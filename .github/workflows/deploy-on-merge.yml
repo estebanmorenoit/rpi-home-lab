@@ -1,16 +1,16 @@
-name: Deploy Home Lab
+# name: Deploy Home Lab
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  deploy:
-    runs-on: self-hosted
-    steps:
-      - name: Run docker-compose from host-mounted folder
-        run: |
-          echo "Starting deployment from /workdir"
-          cd /workdir
-          docker compose -p docker-stack up -d --remove-orphans --no-build
+# jobs:
+#   deploy:
+#     runs-on: self-hosted
+#     steps:
+#       - name: Run docker-compose from host-mounted folder
+#         run: |
+#           echo "Starting deployment from /workdir"
+#           cd /workdir
+#           docker compose -p docker-stack up -d --remove-orphans --no-build

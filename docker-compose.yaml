@@ -142,7 +142,7 @@ services:
     command: -config.file=/etc/loki/config.yaml
     volumes:
       - ./loki/local-config.yaml:/etc/loki/config.yaml:ro
-      - ./loki/chunks:/tmp/loki/chunks       # aligned with path_prefix
+      - ./loki/chunks:/loki/chunks
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
@@ -153,7 +153,6 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - internal
-
 
   # Promtail (log collector)
   promtail:
