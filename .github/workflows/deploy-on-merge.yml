@@ -1,4 +1,4 @@
-name: Local Deploy on RPi
+name: Deploy Home Lab
 
 on:
   push:
@@ -9,7 +9,8 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - name: Run local deploy script
+      - name: Run docker-compose from host-mounted folder
         run: |
-          echo "Starting local deployment..."
-          /home/esteban/docker-stack/deploy.sh
+          echo "Starting deployment from /workdir"
+          cd /workdir
+          docker compose -p docker-stack up -d --remove-orphans --no-build
