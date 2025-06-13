@@ -3,21 +3,21 @@ name: Deploy Updated Stack
 on:
   push:
     branches:
-      - main  # Triggered on push to main (e.g. Renovate merge)
+      - main
 
 jobs:
   deploy:
-    name: Update and Restart Docker Compose Stack
     runs-on: [self-hosted, homelab]
+    defaults:
+      run:
+        working-directory: /workdir
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Pull latest images
         run: docker compose -p docker-stack pull
-        working-directory: /workdir
 
-      - name: Restart stack with new images
+      - name: Restart containers
         run: docker compose -p docker-stack up -d --no-build --remove-orphans
-        working-directory: /workdir
-
-
-

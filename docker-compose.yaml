@@ -58,11 +58,11 @@ services:
     image: prom/prometheus:v3.4.1
     container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/prometheus-config/prometheus.yml:ro  # ✅ Use alternative path
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-storage:/prometheus
     command:
-      - '--config.file=/prometheus-config/prometheus.yml'  # ✅ Point to new path
-      - '--storage.tsdb.retention.time=7d'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'   # Keep only 7 days
       - '--storage.tsdb.path=/prometheus'
     # ports:
     #   - "9090:9090"
@@ -259,6 +259,7 @@ services:
     image: ghcr.io/gethomepage/homepage:v1.3.1
     container_name: homepage
     volumes:
+      - homepage-storage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
       - ./homepage/bookmarks.yaml:/app/config/bookmarks.yaml:ro
       - ./homepage/services.yaml:/app/config/services.yaml:ro
@@ -342,8 +343,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/esteban/docker-stack:/workdir         # 👈 Add this
-    networks:
-      - internal
+    network_mode: host
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
