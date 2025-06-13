@@ -139,9 +139,9 @@ services:
   loki:
     image: grafana/loki:3.4.4
     container_name: loki
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/mnt/config.yaml
     volumes:
-      - ./loki/local-config.yaml:/etc/loki/local-config.yaml:ro  # ✅ clear file-to-file mapping
+      - ./loki/local-config.yaml:/mnt/config.yaml:ro  # ✅ clear file-to-file mapping
       - ./loki/chunks:/loki/chunks
     restart: unless-stopped
     healthcheck:
