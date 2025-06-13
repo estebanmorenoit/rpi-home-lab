@@ -12,11 +12,12 @@ jobs:
 
     steps:
       - name: Pull latest images
-        run: docker compose pull
+        run: docker compose -p docker-stack pull
         working-directory: /workdir
 
-      - name: Restart stack
-        run: docker compose up -d --no-build --remove-orphans
+      - name: Restart stack with new images
+        run: docker compose -p docker-stack up -d --no-build --remove-orphans
         working-directory: /workdir
+
 
 
