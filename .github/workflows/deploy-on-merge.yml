@@ -20,5 +20,7 @@ jobs:
       - name: Pull latest images
         run: docker compose -p docker-stack pull
 
-      - name: Restart containers
-        run: docker compose -p docker-stack up -d --no-build --remove-orphans
+      - name: Start containers (excluding github-runner)
+        run: |
+          services=$(docker compose config --services | grep -v github-runner)
+          docker compose -p docker-stack up -d --no-build --remove-orphans $services
