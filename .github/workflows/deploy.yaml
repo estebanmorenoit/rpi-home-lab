@@ -1,21 +1,26 @@
-name: Deploy to Raspberry Pi via Tailscale SSH
+name: Deploy with Tailscale GitHub Action
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Raspberry Pi
-        uses: appleboy/ssh-action@master
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
         with:
-          host: ${{ secrets.RPI_HOST }}
-          username: esteban
-          key: ${{ secrets.RPI_SSH_KEY }}
-          script: |
-            cd /home/esteban/docker-stack
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:github-deployer
+
+      - name: SSH into Raspberry Pi over Tailscale
+        run: |
+          ssh -o StrictHostKeyChecking=no esteban@raspberrypi.tailnet-yourname.ts.net <<'EOF'
+            cd ~/docker-stack
             git pull origin main
             docker compose pull
             docker compose up -d
+          EOF
