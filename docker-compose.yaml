@@ -223,7 +223,7 @@ services:
 
   # Portainer (UI for Docker)
   portainer:
-    image: portainer/portainer-ce:2.31.0
+    image: portainer/portainer-ce:2.31.2
     container_name: portainer
     ports:
       - "9000:9000"
