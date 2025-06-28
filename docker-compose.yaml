@@ -162,7 +162,7 @@ services:
       - /var/log:/var/log
       - /etc/machine-id:/etc/machine-id
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./promtail:/etc/promtail-config:ro
+      - ./promtail/promtail.yaml:/etc/promtail-config/promtail.yaml:ro
     environment:
       - TZ=${TZ}
     command: -config.file=/etc/promtail-config/promtail.yaml
