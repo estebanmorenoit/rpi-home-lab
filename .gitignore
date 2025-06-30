@@ -25,7 +25,7 @@ homeassistant/
 # Data replaced by named volumes
 portainer/
 uptime-kuma/
-grafana/
+# grafana/
 prometheus/
 
 # Keep only config for these
