@@ -332,25 +332,25 @@ services:
   # 🚀 GitHub Actions Runner
   # -----------------------------
 
-  github-runner:
-    image: myoung34/github-runner:latest
-    container_name: github-runner
-    restart: unless-stopped
-    environment:
-      - RUNNER_NAME=rpi-homelab-github-runner
-      - RUNNER_WORKDIR=/workdir
-      - REPO_URL=https://github.com/estebanmorenoit/rpi-home-lab
-      - ACCESS_TOKEN=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
-      - TZ=${TZ}
-      - RUNNER_GROUP=default
-      - RUNNER_SCOPE=repo
-      - LABELS=homelab,docker
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /home/esteban/docker-stack:/workdir         # 👈 Add this
-    network_mode: host
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+  # github-runner:
+  #   image: myoung34/github-runner:latest
+  #   container_name: github-runner
+  #   restart: unless-stopped
+  #   environment:
+  #     - RUNNER_NAME=rpi-homelab-github-runner
+  #     - RUNNER_WORKDIR=/workdir
+  #     - REPO_URL=https://github.com/estebanmorenoit/rpi-home-lab
+  #     - ACCESS_TOKEN=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
+  #     - TZ=${TZ}
+  #     - RUNNER_GROUP=default
+  #     - RUNNER_SCOPE=repo
+  #     - LABELS=homelab,docker
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /home/esteban/docker-stack:/workdir         # 👈 Add this
+  #   network_mode: host
+  #   labels:
+  #     - "com.centurylinklabs.watchtower.enable=true"
 
 
 # -----------------------------
