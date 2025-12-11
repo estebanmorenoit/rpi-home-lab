@@ -8,7 +8,7 @@ services:
 
   # Home Assistant
   homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:2025.6
+    image: ghcr.io/home-assistant/home-assistant:2025.12
     container_name: homeassistant
     restart: always
     volumes:
