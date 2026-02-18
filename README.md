@@ -1,66 +1,89 @@
+# 🏠 Raspberry Pi Home Lab
 
-# Raspberry Pi Docker Home Lab Stack
-
-A lightweight and extensible Docker-based home lab setup for Raspberry Pi. This stack includes system monitoring, network-level DNS/ad blocking, log aggregation, smart home integration, and a reverse proxy with local `.home` domains.
+A production-inspired home lab running on a Raspberry Pi 4B, built around a full observability stack, smart home integration, network-level ad blocking, and a secure reverse proxy. This project applies real-world DevOps practices — monitoring, log aggregation, alerting, and container management — in a self-hosted home environment.
 
 ---
 
-## 📦 Stack Components
+## 🏗️ Architecture
 
-- **Prometheus** – Metrics collection
-- **Grafana** – Visual dashboards
-- **Loki** – Log aggregation
-- **Promtail** – Log shipping
-- **cAdvisor** – Container metrics
-- **Node Exporter** – Host metrics
-- **Portainer** – Docker management UI
-- **AdGuard Home** – DNS-based ad and tracker blocking
-- **Home Assistant** – Smart home control
-- **Homepage** – Customizable start page/dashboard
-- **Caddy** – Local reverse proxy for `.home` domains
+> Architecture diagram coming soon
+
+Traffic flows through **Caddy** (reverse proxy with automatic HTTPS) into an isolated internal Docker network. All services are accessible via `.home` local domains. Metrics are scraped by **Prometheus** from Node Exporter and cAdvisor, visualised in **Grafana**, and alerts are routed through **Alertmanager** to **Telegram**. Logs are collected by **Promtail** and stored in **Loki**, also visualised in Grafana.
+
+---
+
+## 📦 Stack
+
+### 🏠 Core
+| Service | Purpose |
+|---|---|
+| Home Assistant | Smart home automation and control |
+| AdGuard Home | Network-wide DNS ad/tracker blocking + DHCP |
+| Homepage | Centralised dashboard for all services |
+
+### 📊 Observability
+| Service | Purpose |
+|---|---|
+| Prometheus | Metrics collection and storage |
+| Grafana | Dashboards and visualisation |
+| Loki | Log aggregation and storage |
+| Promtail | Log shipping to Loki |
+| Node Exporter | Host-level metrics (CPU, memory, disk) |
+| cAdvisor | Per-container resource metrics |
+| Alertmanager | Alert routing and Telegram notifications |
+| Uptime Kuma | Service uptime monitoring |
+| Speedtest Tracker | Internet speed tracking over time |
+
+### 🛠️ Management
+| Service | Purpose |
+|---|---|
+| Portainer | Docker container management UI |
+| Watchtower | Automated container image updates |
+
+### 🌐 Networking
+| Service | Purpose |
+|---|---|
+| Caddy | Reverse proxy with automatic HTTPS |
+
+---
+
+## 📸 Screenshots
+
+> Screenshots coming soon — Grafana dashboards, Homepage, Uptime Kuma
 
 ---
 
 ## ✅ Prerequisites
 
-- Raspberry Pi (64-bit OS)
+- Raspberry Pi 4B (64-bit OS)
 - Docker + Docker Compose installed
-- `.home` domain resolution set up using **AdGuard Home** or by editing `/etc/hosts`
-- Public IP or static LAN IP for reverse proxy
+- `.home` domain resolution via AdGuard Home or `/etc/hosts`
 
 ---
 
 ## 🚀 Setup
 
 ### 1. Clone the Repository
-
 ```bash
-git clone https://github.com/yourusername/docker-stack.git
-cd docker-stack
+git clone https://github.com/estebanmorenoit/rpi-home-lab.git
+cd rpi-home-lab
 ```
 
 ### 2. Configure AdGuard Home (DNS)
 
 Access AdGuard Home at `http://<your-pi-ip>:3000` to complete the onboarding wizard:
 
-- Set DNS ports (default is 53)
-- Define upstream DNS servers (e.g., 1.1.1.1, 8.8.8.8)
+- Set DNS ports (default: 53)
+- Define upstream DNS servers (e.g., `1.1.1.1`, `8.8.8.8`)
 - Set admin credentials
-
-Then ensure AdGuard Home is your network’s primary DNS server and configure a rewrite or DNS entry for `*.home` domains pointing to your Pi.
+- Configure a `*.home` DNS rewrite pointing to your Pi's IP
 
 ### 3. Prepare Home Assistant Config
-
-Copy the example configuration to enable proxy access on new setups:
-
 ```bash
 cp homeassistant/configuration.yaml.example homeassistant/configuration.yaml
 ```
 
-This ensures Home Assistant is configured to work behind a reverse proxy like Caddy.
-
-The file `homeassistant/configuration.yaml.example` includes a basic setup with trusted proxies:
-
+This configures Home Assistant to work behind Caddy's reverse proxy:
 ```yaml
 default_config:
 
@@ -75,114 +98,91 @@ frontend:
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
-
-lovelace:
-  mode: "storage"
-  resources:
-    - url: "/hacsfiles/button-card/button-card.js"
-      type: "module"
-    # Add other resources here...
 ```
 
 ### 4. Create the `.env` File
-
-Set your environment-specific variables:
-
 ```bash
-echo "TZ=Europe/London" >> .env
-echo "EMAIL=your-email@example.com" >> .env
+cp .env.example .env
 ```
 
-Or edit it manually:
-
+Then edit `.env` with your values:
 ```env
 TZ=Europe/London
 EMAIL=your-email@example.com
+APP_KEY=your-speedtest-app-key
 ```
 
-### 5. Edit the Caddyfile
+### 5. Configure Caddy
 
-Ensure all services are routed properly:
-
+Edit `caddy/Caddyfile` to route your `.home` domains:
 ```caddy
-http://grafana.home {
+grafana.home {
   reverse_proxy grafana:3000
+}
+
+homeassistant.home {
+  reverse_proxy homeassistant:8123
 }
 ```
 
-Add routes for all required services.
+Add a block for each service you want to expose.
 
 ### 6. Start the Stack
-
 ```bash
 docker compose up -d
 ```
 
-### 7. Optional: Local DNS or Hosts File
-
-If not using AdGuard Home, add entries to your local `/etc/hosts` file:
-
-```
-192.168.1.100 grafana.home prometheus.home portainer.home homeassistant.home ...
+### 7. Verify Services
+```bash
+docker compose ps
 ```
 
-Replace `192.168.1.100` with your Pi’s IP.
+All services should show as `healthy` or `running`. Access your dashboard at `http://homepage.home` once DNS is configured.
 
 ---
 
-## 🧹 Maintenance Script
+## 🧹 Maintenance
 
-A `maintenance.sh` script is included to:
+A `maintenance.sh` script handles routine cleanup:
 
-- Clean up unused containers, images, volumes, and networks
-- Set up logrotate for container logs
-- (Optionally) purge metric or log data
-
-### Make it Executable
-
+- Removes unused containers, images, volumes, and networks
+- Configures log rotation for container logs
+- Optionally purges old metric or log data
 ```bash
 chmod +x maintenance.sh
-```
-
-### Run it Manually
-
-```bash
 ./maintenance.sh
 ```
 
----
-
-## ⏱️ Automate via Cron
-
-To schedule weekly cleanups (e.g., Sundays at 3AM):
-
+### Automate with Cron (weekly, Sundays at 3AM)
 ```bash
 crontab -e
 ```
-
-Add this line:
-
 ```cron
 0 3 * * 0 /home/esteban/docker-stack/maintenance.sh >> /home/esteban/docker-stack/maintenance.log 2>&1
 ```
 
-Verify:
+---
 
-```bash
-crontab -l
-```
+## 📉 Data Retention
+
+| Service | Retention | Config |
+|---|---|---|
+| Prometheus | 7 days | `--storage.tsdb.retention.time=7d` |
+| Loki | Configurable | Set in `loki/local-config.yaml` |
 
 ---
 
-## 📉 Data Retention Suggestions
+## 🗺️ Roadmap
 
-- **Prometheus**: use `--storage.tsdb.retention.time=7d`
-- **Loki**: configure chunk retention if using file/S3 storage
+- [ ] Add architecture diagram
+- [ ] Add Grafana dashboard screenshots
+- [ ] Ansible playbook for Pi provisioning
+- [ ] GitHub Actions CI for compose validation
 
 ---
 
-## Notes
+## ⚠️ Notes
 
-- Validate paths, volumes, and permissions for your specific Pi or network.
-- Backups are recommended before major changes.
-- For new setups, ensure configuration templates are copied before launching containers.
+- Never commit your `.env` file — it's in `.gitignore` by default
+- Validate volume paths and permissions before first launch
+- Back up your Home Assistant config regularly
