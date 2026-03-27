@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   # -----------------------------
@@ -10,10 +8,10 @@ services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:2025.6
     container_name: homeassistant
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./homeassistant:/config
-    privileged: true
+    privileged: true  # Required for device/USB access; scope with devices: if possible
     network_mode: host
     environment:
       - TZ=${TZ}
@@ -29,7 +27,7 @@ services:
   adguard:
     image: adguard/adguardhome:v0.107.63
     container_name: adguard
-    restart: always
+    restart: unless-stopped
     volumes:
       - adguard-config:/opt/adguardhome
     ports:
@@ -66,7 +64,7 @@ services:
       - '--storage.tsdb.path=/prometheus'
     # ports:
     #   - "9090:9090"
-    restart: always
+    restart: unless-stopped
     environment:
       - TZ=${TZ}
     healthcheck:
@@ -78,7 +76,6 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - internal
-
 
   # Node Exporter (host metrics)
   node-exporter:
@@ -100,7 +97,6 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--path.rootfs=/rootfs'
-      - '--collector.filesystem.ignored-mount-points='
 
   # cAdvisor (container metrics)
   cadvisor:
@@ -134,6 +130,11 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
       - TZ=${TZ}
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
@@ -168,7 +169,7 @@ services:
     image: grafana/promtail:3.5.1
     container_name: promtail
     volumes:
-      - /var/log:/var/log
+      - /var/log:/var/log:ro
       - /etc/machine-id:/etc/machine-id
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./promtail/promtail.yaml:/etc/promtail-config/promtail.yaml:ro
@@ -176,11 +177,14 @@ services:
       - TZ=${TZ}
     command: -config.file=/etc/promtail-config/promtail.yaml
     restart: unless-stopped
+    depends_on:
+      loki:
+        condition: service_healthy
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - internal
-  
+
   # Uptime Kuma (self-hosted uptime monitor)
   uptime-kuma:
     image: louislam/uptime-kuma:1.23.16
@@ -191,7 +195,7 @@ services:
     volumes:
       - uptime-kuma-storage:/app/data
     dns:
-      - 192.168.6.59
+      - ${ADGUARD_IP}
     environment:
       - TZ=${TZ}
     labels:
@@ -203,7 +207,7 @@ services:
   speedtest-tracker:
     image: lscr.io/linuxserver/speedtest-tracker:1.6.1
     container_name: speedtest-tracker
-    restart: always
+    restart: unless-stopped
     # ports:
     #   - "8765:80"   # Custom HTTP port (change if using HTTPS or want to expose 443 too)
     #   - "8443:443"  # Optional: expose HTTPS port if needed
@@ -213,7 +217,7 @@ services:
       - TZ=${TZ}
       - APP_KEY=${APP_KEY}              # Set in .env or replace directly here
       - DB_CONNECTION=sqlite
-      - APP_DEBUG=true
+      - APP_DEBUG=false
       - SPEEDTEST_SCHEDULE="17 * * * *"
     volumes:
       - speedtest_config:/config
@@ -224,8 +228,6 @@ services:
     networks:
       - internal
 
-
-    
   # -----------------------------
   # 🛠 Management & Admin
   # -----------------------------
@@ -257,7 +259,7 @@ services:
   #     - WATCHTOWER_CLEANUP=true
   #     - WATCHTOWER_LABEL_ENABLE=true
   #     - WATCHTOWER_NOTIFICATIONS=shoutrrr
-  #     - WATCHTOWER_NOTIFICATION_URL=telegram://8053089884:AAE3ke-ZaFl2Z6ejYAL-ZChL6nTBuywBQ6Q@telegram?channels=-4812444281
+  #     - WATCHTOWER_NOTIFICATION_URL=${WATCHTOWER_NOTIFICATION_URL}
   #   networks:
   #     - internal
 
@@ -280,7 +282,7 @@ services:
     #   - "3002:3000"
     restart: unless-stopped
     environment:
-      - HOMEPAGE_ALLOWED_HOSTS=*
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
       - TZ=${TZ}
     # healthcheck:
     #   test: ["CMD-SHELL", "wget --spider -q http://0.0.0.0:3000 || exit 1"]
@@ -300,7 +302,9 @@ services:
   caddy:
     image: caddy:2.10.0
     container_name: caddy-proxy
-    restart: always 
+    restart: unless-stopped
+    dns:
+      - 127.0.0.11  # Force Docker's internal DNS, prevents AdGuard port 53 interference
     ports:
       - "80:80"
       - "443:443"
@@ -319,6 +323,14 @@ services:
         condition: service_healthy
       loki:
         condition: service_healthy
+      uptime-kuma:
+        condition: service_started
+      speedtest-tracker:
+        condition: service_started
+      homepage:
+        condition: service_started
+      portainer:
+        condition: service_started
     environment:
       - TZ=${TZ}
       - EMAIL=${EMAIL}
@@ -340,14 +352,14 @@ services:
   #     - RUNNER_NAME=rpi-homelab-github-runner
   #     - RUNNER_WORKDIR=/workdir
   #     - REPO_URL=https://github.com/estebanmorenoit/rpi-home-lab
-  #     - ACCESS_TOKEN=REDACTED_TOKEN
+  #     - ACCESS_TOKEN=${GITHUB_RUNNER_TOKEN}
   #     - TZ=${TZ}
   #     - RUNNER_GROUP=default
   #     - RUNNER_SCOPE=repo
   #     - LABELS=homelab,docker
   #   volumes:
   #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - /home/esteban/docker-stack:/workdir         # 👈 Add this
+  #     - /home/esteban/docker-stack:/workdir
   #   network_mode: host
   #   labels:
   #     - "com.centurylinklabs.watchtower.enable=true"
@@ -368,7 +380,5 @@ volumes:
   prometheus-storage:
   uptime-kuma-storage:
   portainer-storage:
-  homepage-storage:
-  homeassistant-config:
   adguard-config:
   speedtest_config:
