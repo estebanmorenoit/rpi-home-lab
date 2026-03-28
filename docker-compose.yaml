@@ -136,7 +136,7 @@ services:
       prometheus:
         condition: service_healthy
       loki:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
@@ -156,11 +156,10 @@ services:
       - ./loki/local-config.yaml:/etc/loki/config.yaml:ro
       - ./loki/chunks:/loki/chunks
     restart: unless-stopped
+    # Loki 3.7+ uses a distroless image (no shell/wget/curl).
+    # No healthcheck is possible without external tooling; dependents use service_started.
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["NONE"]
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -182,7 +181,7 @@ services:
     restart: unless-stopped
     depends_on:
       loki:
-        condition: service_healthy
+        condition: service_started
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -333,7 +332,7 @@ services:
       adguard:
         condition: service_healthy
       loki:
-        condition: service_healthy
+        condition: service_started
       uptime-kuma:
         condition: service_started
       speedtest-tracker:
