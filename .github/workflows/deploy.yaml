@@ -16,6 +16,12 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:github-deployer
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
       - name: SSH into Raspberry Pi over Tailscale
         run: |
           ssh -o StrictHostKeyChecking=accept-new esteban@raspberrypi.pancake-edmontosaurus.ts.net <<'EOF'
