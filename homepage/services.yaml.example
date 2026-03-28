@@ -1,0 +1,76 @@
+- Monitoring:
+    - Grafana:
+        icon: grafana
+        href: http://grafana.home
+        description: Dashboards & Visualization
+        server: rpi
+        container: grafana
+        widget:
+          type: grafana
+          url: http://grafana.home
+          username: admin
+          password: YOUR_GRAFANA_PASSWORD
+    - Speedtest Tracker:
+        icon: myspeed
+        href: http://speedtest.home
+        description: Internet Speed Logs
+        server: rpi
+        container: speedtest-tracker
+        widget:
+          type: speedtest
+          url: http://speedtest.home
+          version: 1 # optional, default is 1
+          key: YOUR_SPEEDTEST_API_KEY # required for version 2
+          bitratePrecision: 3 # optional, default is 0
+    - Prometheus:
+        icon: prometheus
+        href: http://prometheus.home
+        description: Metrics Collection
+        server: rpi
+        container: prometheus
+
+- Management:
+    - Portainer:
+        icon: portainer
+        href: http://portainer.home
+        description: Docker Management UI
+        server: rpi
+        container: portainer
+        widget:
+          type: portainer
+          url: http://portainer.home
+          env: 3
+          key: YOUR_PORTAINER_API_TOKEN
+
+- DNS & Network:
+    - AdGuard Home:
+        icon: adguard-home
+        href: http://adguard.home
+        description: DNS-level Ad Blocking
+        server: rpi
+        container: adguard
+        widgets:
+          - type: adguard
+            url: http://adguard.home
+            username: YOUR_ADGUARD_USERNAME
+            password: YOUR_ADGUARD_PASSWORD
+
+- Status:
+    - Uptime Kuma:
+        icon: uptime-kuma
+        href: http://uptimekuma.home
+        description: Self-hosted Uptime Monitor
+        server: rpi
+        container: uptime-kuma
+        widgets:
+          - type: uptimekuma
+            url: http://uptimekuma.home
+            slug: default
+
+- Smart Home:
+    - Home Assistant:
+        icon: home-assistant
+        href: http://homeassistant.home
+        description: Automate Your Home
+        server: rpi
+        container: homeassistant

@@ -44,7 +44,7 @@ homepage/
 !homepage/custom.js
 !homepage/docker.yaml
 !homepage/kubernetes.yaml
-!homepage/services.yaml
+!homepage/services.yaml.example
 !homepage/settings.yaml
 !homepage/widgets.yaml
 
