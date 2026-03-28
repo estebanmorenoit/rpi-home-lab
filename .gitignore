@@ -47,6 +47,7 @@ homepage/
 !homepage/services.yaml.example
 !homepage/settings.yaml
 !homepage/widgets.yaml
+homepage/services.yaml
 
 # --------------------------------------
 # 🧹 Logs, Caches, Build Artifacts
