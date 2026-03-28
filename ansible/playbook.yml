@@ -1,0 +1,199 @@
+---
+- name: Provision Raspberry Pi Home Lab
+  hosts: rpi
+  become: true
+
+  vars:
+    repo_url: git@github.com:estebanmorenoit/rpi-home-lab.git
+    repo_dest: /home/esteban/docker-stack
+    compose_user: esteban
+
+  tasks:
+
+    # -------------------------
+    # System packages
+    # -------------------------
+
+    - name: Install prerequisite packages
+      apt:
+        name:
+          - git
+          - curl
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - python3-pip
+        state: present
+        update_cache: true
+
+    # -------------------------
+    # Docker
+    # -------------------------
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Add Docker apt repository
+      apt_repository:
+        repo: "deb [arch=arm64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker Engine and Compose plugin
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Add user to docker group
+      user:
+        name: "{{ compose_user }}"
+        groups: docker
+        append: true
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    # -------------------------
+    # Tailscale
+    # -------------------------
+
+    - name: Add Tailscale GPG key
+      apt_key:
+        url: https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg
+        state: present
+
+    - name: Add Tailscale apt repository
+      apt_repository:
+        repo: "deb https://pkgs.tailscale.com/stable/debian bookworm main"
+        state: present
+        filename: tailscale
+
+    - name: Install Tailscale
+      apt:
+        name: tailscale
+        state: present
+        update_cache: true
+
+    - name: Enable and start Tailscale service
+      systemd:
+        name: tailscaled
+        enabled: true
+        state: started
+
+    # -------------------------
+    # SSH and Git setup
+    # -------------------------
+
+    - name: Add GitHub to known_hosts
+      known_hosts:
+        name: github.com
+        key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+        path: /home/{{ compose_user }}/.ssh/known_hosts
+        state: present
+      become_user: "{{ compose_user }}"
+
+    # -------------------------
+    # Clone repository
+    # -------------------------
+
+    - name: Clone the repo
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ repo_dest }}"
+        version: main
+        accept_hostkey: true
+      become_user: "{{ compose_user }}"
+
+    - name: Ensure git remote uses SSH
+      git_config:
+        name: remote.origin.url
+        value: "{{ repo_url }}"
+        scope: local
+        repo: "{{ repo_dest }}"
+      become_user: "{{ compose_user }}"
+
+    # -------------------------
+    # Configuration files
+    # -------------------------
+
+    - name: Copy .env.example to .env if not present
+      copy:
+        src: "{{ repo_dest }}/.env.example"
+        dest: "{{ repo_dest }}/.env"
+        remote_src: true
+        force: false
+        owner: "{{ compose_user }}"
+        mode: "0600"
+
+    - name: Copy homeassistant configuration example if not present
+      copy:
+        src: "{{ repo_dest }}/homeassistant/configuration.yaml.example"
+        dest: "{{ repo_dest }}/homeassistant/configuration.yaml"
+        remote_src: true
+        force: false
+        owner: "{{ compose_user }}"
+
+    - name: Copy homepage services example if not present
+      copy:
+        src: "{{ repo_dest }}/homepage/services.yaml.example"
+        dest: "{{ repo_dest }}/homepage/services.yaml"
+        remote_src: true
+        force: false
+        owner: "{{ compose_user }}"
+
+    # -------------------------
+    # Maintenance cron job
+    # -------------------------
+
+    - name: Schedule weekly maintenance
+      cron:
+        name: "Docker stack maintenance"
+        user: "{{ compose_user }}"
+        weekday: "0"
+        hour: "3"
+        minute: "0"
+        job: "{{ repo_dest }}/maintenance.sh >> {{ repo_dest }}/maintenance.log 2>&1"
+
+    # -------------------------
+    # Start the stack
+    # -------------------------
+
+    - name: Make deploy and maintenance scripts executable
+      file:
+        path: "{{ repo_dest }}/{{ item }}"
+        mode: "0755"
+      loop:
+        - deploy.sh
+        - maintenance.sh
+
+    - name: Start the stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ repo_dest }}"
+        project_name: docker-stack
+        state: present
+        pull: always
+      become_user: "{{ compose_user }}"
+
+    # -------------------------
+    # Post-install reminders
+    # -------------------------
+
+    - name: Remind user to complete setup
+      debug:
+        msg:
+          - "Stack is running. Complete these manual steps:"
+          - "1. Edit {{ repo_dest }}/.env with your real values"
+          - "2. Run 'sudo tailscale up' to authenticate Tailscale"
+          - "3. Configure AdGuard DNS rewrite: *.home → {{ ansible_default_ipv4.address }}"
+          - "4. Set your router to use {{ ansible_default_ipv4.address }} as DNS server"
+          - "5. Fill in credentials in {{ repo_dest }}/homepage/services.yaml"
