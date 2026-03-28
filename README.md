@@ -232,6 +232,34 @@ It runs: `git pull` → `docker compose pull` → `docker compose up -d --remove
 
 ---
 
+## CI/CD Pipeline
+
+A GitHub Actions workflow automatically deploys to the Pi on every push to `main`, connecting over Tailscale with no open ports required.
+
+**Required GitHub repository secrets:**
+
+| Secret | Description |
+|---|---|
+| `TS_OAUTH_CLIENT_ID` | Tailscale OAuth client ID |
+| `TS_OAUTH_SECRET` | Tailscale OAuth client secret |
+| `SSH_PRIVATE_KEY` | Private key for SSH access to the Pi |
+
+**Setup steps:**
+
+1. Create a Tailscale OAuth client with `all` scopes at login.tailscale.com/admin/settings/oauth
+2. Add `tag:github-deployer` to `tagOwners` in your Tailscale ACL policy
+3. Generate a deploy key on the Pi and add the public key to `~/.ssh/authorized_keys`:
+```bash
+ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/github_deploy -N ""
+cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+git remote set-url origin git@github.com:<your-username>/<your-repo>.git
+```
+4. Add the private key (`~/.ssh/github_deploy`) as the `SSH_PRIVATE_KEY` secret in GitHub
+5. Update the SSH hostname in `.github/workflows/deploy.yaml` to your Pi's Tailscale address
+
+---
+
 ## Maintenance
 
 `maintenance.sh` handles routine housekeeping:
