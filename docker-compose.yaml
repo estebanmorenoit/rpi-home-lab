@@ -79,7 +79,7 @@ services:
 
   # Node Exporter (host metrics)
   node-exporter:
-    image: prom/node-exporter:v1.9.1
+    image: prom/node-exporter:v1.10.2
     container_name: node-exporter
     # ports:
     #   - "9100:9100"
