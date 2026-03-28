@@ -25,7 +25,7 @@ services:
 
   # AdGuard Home (DNS + DHCP)
   adguard:
-    image: adguard/adguardhome:v0.107.63
+    image: adguard/adguardhome:v0.107.73
     container_name: adguard
     restart: unless-stopped
     volumes:
