@@ -65,21 +65,21 @@ graph TB
 
 ## Stack
 
-| Service | Role | Version |
-|---|---|---|
-| [Caddy](https://caddyserver.com/) | Reverse proxy for all `.home` domains | `2.10.0` |
-| [AdGuard Home](https://adguard.com/en/adguard-home/overview.html) | Network-wide DNS ad/tracker blocking + DNS rewrites | `v0.107.63` |
-| [Home Assistant](https://www.home-assistant.io/) | Smart home automation platform | `2025.6` |
-| [Prometheus](https://prometheus.io/) | Metrics collection and storage (7-day retention) | `v3.4.2` |
-| [Grafana](https://grafana.com/) | Dashboards provisioned from code | `12.0.2` |
-| [Loki](https://grafana.com/oss/loki/) | Log aggregation | `3.5.1` |
-| [Promtail](https://grafana.com/docs/loki/latest/send-data/promtail/) | Log shipping from host and containers | `3.5.1` |
-| [Node Exporter](https://github.com/prometheus/node_exporter) | Host-level metrics (CPU, memory, disk, network) | `v1.9.1` |
-| [cAdvisor](https://github.com/google/cadvisor) | Per-container resource metrics | `v0.52.1` |
-| [Uptime Kuma](https://uptime.kuma.pet/) | Service uptime monitoring with alerting | `1.23.16` |
-| [Speedtest Tracker](https://docs.speedtest-tracker.dev/) | Scheduled ISP bandwidth monitoring | `1.6.1` |
-| [Homepage](https://gethomepage.dev/) | Unified dashboard for all services | `v1.3.2` |
-| [Portainer](https://www.portainer.io/) | Docker management UI | `2.31.2` |
+| Service | Role |
+|---|---|
+| [Caddy](https://caddyserver.com/) | Reverse proxy for all `.home` domains |
+| [AdGuard Home](https://adguard.com/en/adguard-home/overview.html) | Network-wide DNS ad/tracker blocking + DNS rewrites |
+| [Home Assistant](https://www.home-assistant.io/) | Smart home automation platform |
+| [Prometheus](https://prometheus.io/) | Metrics collection and storage (7-day retention) |
+| [Grafana](https://grafana.com/) | Dashboards provisioned from code |
+| [Loki](https://grafana.com/oss/loki/) | Log aggregation |
+| [Promtail](https://grafana.com/docs/loki/latest/send-data/promtail/) | Log shipping from host and containers |
+| [Node Exporter](https://github.com/prometheus/node_exporter) | Host-level metrics (CPU, memory, disk, network) |
+| [cAdvisor](https://github.com/google/cadvisor) | Per-container resource metrics |
+| [Uptime Kuma](https://uptime.kuma.pet/) | Service uptime monitoring with alerting |
+| [Speedtest Tracker](https://docs.speedtest-tracker.dev/) | Scheduled ISP bandwidth monitoring |
+| [Homepage](https://gethomepage.dev/) | Unified dashboard for all services |
+| [Portainer](https://www.portainer.io/) | Docker management UI |
 
 ---
 
@@ -264,7 +264,7 @@ git remote set-url origin git@github.com:<your-username>/<your-repo>.git
 
 `maintenance.sh` handles routine housekeeping:
 
-- Prunes unused Docker images, containers, volumes, and networks
+- Prunes unused Docker images, containers, and networks
 - Cleans Loki log chunks older than 7 days
 - Sets up and runs `logrotate` for Docker container logs
 
