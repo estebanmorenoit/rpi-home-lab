@@ -311,7 +311,7 @@ services:
 
   # Caddy (HTTPS reverse proxy)
   caddy:
-    image: caddy:2.10.0
+    image: caddy:2.11.2
     container_name: caddy-proxy
     restart: unless-stopped
     dns:
