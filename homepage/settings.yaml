@@ -1,12 +1,12 @@
 allow_hosts:
-  - '*'
+  - homepage.home
 
 title: "Pi Dashboard"
 theme: dark
 color: slate
 
 providers:
-  openweathermap: d5f41e42d8d9b1c1f1894c09d85367d0
+  openweathermap: "{{HOMEPAGE_VAR_OWM_KEY}}"
   weatherapi: YOUR_WEATHERAPI_API_KEY
 
 layout:

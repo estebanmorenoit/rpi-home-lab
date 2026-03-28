@@ -32,7 +32,7 @@ services:
       - adguard-config:/opt/adguardhome
     ports:
       - "8080:80"
-      - "3000:3000"
+      # "3000:3000" is the AdGuard setup wizard — removed after initial setup
       - "53:53/tcp"
       - "53:53/udp"
     environment:
@@ -130,6 +130,8 @@ services:
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
       - TZ=${TZ}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     depends_on:
       prometheus:
         condition: service_healthy
@@ -173,6 +175,7 @@ services:
       - /etc/machine-id:/etc/machine-id
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./promtail/promtail.yaml:/etc/promtail-config/promtail.yaml:ro
+      - promtail-positions:/etc/promtail-positions
     environment:
       - TZ=${TZ}
     command: -config.file=/etc/promtail-config/promtail.yaml
@@ -218,7 +221,7 @@ services:
       - APP_KEY=${APP_KEY}              # Set in .env or replace directly here
       - DB_CONNECTION=sqlite
       - APP_DEBUG=false
-      - SPEEDTEST_SCHEDULE="17 * * * *"
+      - SPEEDTEST_SCHEDULE=17 * * * *
     volumes:
       - speedtest_config:/config
       # Optional: uncomment if using custom SSL certs
@@ -236,8 +239,9 @@ services:
   portainer:
     image: portainer/portainer-ce:2.31.2
     container_name: portainer
-    ports:
-      - "9000:9000"
+    # Port 9000 is accessible via Caddy at http://portainer.home
+    # ports:
+    #   - "9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer-storage:/data
@@ -284,11 +288,18 @@ services:
     environment:
       - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
       - TZ=${TZ}
-    # healthcheck:
-    #   test: ["CMD-SHELL", "wget --spider -q http://0.0.0.0:3000 || exit 1"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
+      - HOMEPAGE_VAR_GRAFANA_USER=${HOMEPAGE_VAR_GRAFANA_USER}
+      - HOMEPAGE_VAR_GRAFANA_PASSWORD=${HOMEPAGE_VAR_GRAFANA_PASSWORD}
+      - HOMEPAGE_VAR_SPEEDTEST_KEY=${HOMEPAGE_VAR_SPEEDTEST_KEY}
+      - HOMEPAGE_VAR_PORTAINER_KEY=${HOMEPAGE_VAR_PORTAINER_KEY}
+      - HOMEPAGE_VAR_ADGUARD_USERNAME=${HOMEPAGE_VAR_ADGUARD_USERNAME}
+      - HOMEPAGE_VAR_ADGUARD_PASSWORD=${HOMEPAGE_VAR_ADGUARD_PASSWORD}
+      - HOMEPAGE_VAR_OWM_KEY=${HOMEPAGE_VAR_OWM_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://0.0.0.0:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -328,7 +339,7 @@ services:
       speedtest-tracker:
         condition: service_started
       homepage:
-        condition: service_started
+        condition: service_healthy
       portainer:
         condition: service_started
     environment:
@@ -382,3 +393,4 @@ volumes:
   portainer-storage:
   adguard-config:
   speedtest_config:
+  promtail-positions:

@@ -17,8 +17,8 @@ command -v logrotate >/dev/null 2>&1 || { echo "[✗] logrotate not found. Exiti
 # ===============================
 # 🧼 Docker Cleanup
 # ===============================
-echo "[*] Cleaning up unused Docker images, containers, networks, and volumes..."
-docker system prune -af --volumes
+echo "[*] Cleaning up unused Docker images, containers, and networks..."
+docker system prune -af
 
 # ===============================
 # 📉 Loki Log Retention (7 days)
