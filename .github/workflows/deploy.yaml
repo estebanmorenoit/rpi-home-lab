@@ -18,7 +18,7 @@ jobs:
 
       - name: SSH into Raspberry Pi over Tailscale
         run: |
-          ssh -o StrictHostKeyChecking=no esteban@raspberrypi.tailnet-yourname.ts.net <<'EOF'
+          ssh -o StrictHostKeyChecking=accept-new esteban@raspberrypi.pancake-edmontosaurus.ts.net <<'EOF'
             cd ~/docker-stack
             git pull origin main
             docker compose pull
