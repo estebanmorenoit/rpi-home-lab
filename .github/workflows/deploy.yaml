@@ -26,6 +26,6 @@ jobs:
           ssh -o StrictHostKeyChecking=accept-new esteban@raspberrypi.pancake-edmontosaurus.ts.net <<'EOF'
             cd ~/docker-stack
             git pull origin main
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose -p docker-stack pull
+            docker compose -p docker-stack up -d --remove-orphans
           EOF

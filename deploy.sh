@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 cd /home/esteban/docker-stack
 git pull origin main
