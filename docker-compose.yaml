@@ -236,7 +236,7 @@ services:
 
   # Portainer (UI for Docker)
   portainer:
-    image: portainer/portainer-ce:2.31.2
+    image: portainer/portainer-ce:2.40.0
     container_name: portainer
     # Port 9000 is accessible via Caddy at http://portainer.home
     # ports:
