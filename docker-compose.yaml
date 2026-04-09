@@ -167,7 +167,7 @@ services:
 
   # Promtail (log collector)
   promtail:
-    image: grafana/promtail:3.6.8
+    image: grafana/promtail:3.6.10
     container_name: promtail
     volumes:
       - /var/log:/var/log:ro
