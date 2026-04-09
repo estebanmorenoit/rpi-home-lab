@@ -6,7 +6,7 @@ services:
 
   # Home Assistant
   homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:2026.3
+    image: ghcr.io/home-assistant/home-assistant:2026.4
     container_name: homeassistant
     restart: unless-stopped
     volumes:
