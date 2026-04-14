@@ -118,7 +118,7 @@ services:
 
   # Grafana (dashboards)
   grafana:
-    image: grafana/grafana:12.4.2
+    image: grafana/grafana:12.4.3
     container_name: grafana
     restart: unless-stopped
     # ports:
