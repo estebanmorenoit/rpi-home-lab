@@ -125,7 +125,7 @@ try:
     add_monitor(type="http", name="Caddy",             url="http://caddy-proxy:80",             **HTTP)
 
     # External sites
-    add_monitor(type="http", name="Portfolio",         url="https://estebanmoreno.link/",       **HTTP)
+    add_monitor(type="http", name="Esteban Moreno - Portfolio", url="https://estebanmoreno.link/", **HTTP)
 
     print("[*] Adding TCP monitors...")
 
