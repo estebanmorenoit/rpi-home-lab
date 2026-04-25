@@ -27,5 +27,6 @@ jobs:
             cd ~/docker-stack
             git pull origin main
             docker compose -p docker-stack pull
+            docker container prune -f
             docker compose -p docker-stack up -d --remove-orphans
           EOF
