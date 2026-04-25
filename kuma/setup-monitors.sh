@@ -67,6 +67,7 @@ try:
             url=url,
             interval=60,
             maxretries=3,
+            conditions=[],
         )
         print(f"[✓] Added: {name} (id={r.get('monitorID', '?')})")
 
@@ -81,6 +82,7 @@ try:
             port=port,
             interval=60,
             maxretries=3,
+            conditions=[],
         )
         print(f"[✓] Added: {name} (id={r.get('monitorID', '?')})")
 
