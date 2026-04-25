@@ -61,7 +61,7 @@ print(json.dumps({
 ")
 
 LOGIN_RESP=$(kuma_curl \
-  -X POST "$KUMA_URL/api/auth/login" \
+  -X POST "$KUMA_URL/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   --data-raw "$LOGIN_PAYLOAD")
 
@@ -91,7 +91,7 @@ echo "[✓] Authenticated."
 
 EXISTING=$(kuma_curl \
   -H "Authorization: Bearer $TOKEN" \
-  "$KUMA_URL/api/monitor" \
+  "$KUMA_URL/api/v1/monitor" \
   | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
@@ -131,7 +131,7 @@ print(json.dumps({
 " "$name" "$url")
 
   RESP=$(kuma_curl \
-    -X POST "$KUMA_URL/api/monitor" \
+    -X POST "$KUMA_URL/api/v1/monitor" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
     --data-raw "$PAYLOAD")
@@ -163,7 +163,7 @@ print(json.dumps({
 " "$name" "$host" "$port")
 
   RESP=$(kuma_curl \
-    -X POST "$KUMA_URL/api/monitor" \
+    -X POST "$KUMA_URL/api/v1/monitor" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
     --data-raw "$PAYLOAD")
