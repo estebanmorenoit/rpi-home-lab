@@ -21,13 +21,29 @@ echo ""
 echo "===== Uptime Kuma monitor setup: $(date) ====="
 
 # ===============================
+# 🔍 Pre-flight checks
+# ===============================
+
+if ! docker network ls --format '{{.Name}}' | grep -q "^${DOCKER_NETWORK}$"; then
+  echo "[✗] Network '$DOCKER_NETWORK' not found. Is the stack running? Try: docker compose up -d"
+  exit 1
+fi
+
+if ! docker ps --format '{{.Names}}' | grep -q '^uptime-kuma$'; then
+  echo "[✗] Container 'uptime-kuma' is not running. Try: docker compose up -d"
+  exit 1
+fi
+
+echo "[✓] Stack is up."
+
+# ===============================
 # 🌐 Helpers
 # ===============================
 
 # Run curl inside the Docker internal network so we can reach uptime-kuma:3001 directly.
 kuma_curl() {
   docker run --rm --network "$DOCKER_NETWORK" curlimages/curl:latest \
-    --silent "$@"
+    --silent --show-error "$@"
 }
 
 # ===============================
@@ -49,10 +65,18 @@ LOGIN_RESP=$(kuma_curl \
   -H "Content-Type: application/json" \
   --data-raw "$LOGIN_PAYLOAD")
 
+if [ -z "$LOGIN_RESP" ]; then
+  echo "[✗] No response from Kuma. Is the container healthy? Check: docker logs uptime-kuma"
+  exit 1
+fi
+
 TOKEN=$(echo "$LOGIN_RESP" | python3 -c "
 import sys, json
-d = json.load(sys.stdin)
-print(d.get('token', ''))
+try:
+    d = json.load(sys.stdin)
+    print(d.get('token', ''))
+except Exception as e:
+    print('', end='')
 ")
 
 if [ -z "$TOKEN" ]; then
