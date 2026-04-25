@@ -36,81 +36,97 @@ fi
 echo "[✓] Stack is up."
 
 # ===============================
-# 🐍 Python setup script (Socket.IO API)
-# Uptime Kuma has no REST login endpoint — all auth is via Socket.IO.
-# uptime-kuma-api handles this transparently.
+# 🐍 Python setup script (raw Socket.IO)
+# Uptime Kuma has no REST login endpoint — auth and monitor creation are
+# Socket.IO-only. We use python-socketio directly so we control the full
+# payload (including the `conditions` field required by Kuma v2).
 # ===============================
 
 TMPPY=$(mktemp /tmp/kuma_setup_XXXXXX.py)
 trap 'rm -f "$TMPPY"' EXIT
 
 cat > "$TMPPY" << 'PYEOF'
-import os, sys
-from uptime_kuma_api import UptimeKumaApi, MonitorType
+import os, sys, threading
+import socketio
 
-api = UptimeKumaApi(os.environ["KUMA_URL"])
+KUMA_URL = os.environ["KUMA_URL"]
+USERNAME  = os.environ["KUMA_USERNAME"]
+PASSWORD  = os.environ["KUMA_PASSWORD"]
+
+sio = socketio.Client(logger=False, engineio_logger=False)
+
+existing = set()
+_monitor_list_ready = threading.Event()
+
+@sio.on("monitorList")
+def _on_monitor_list(data):
+    for m in (data.values() if isinstance(data, dict) else []):
+        if isinstance(m, dict) and m.get("name"):
+            existing.add(m["name"])
+    _monitor_list_ready.set()
+
+sio.connect(KUMA_URL)
+
+def _call(event, data=None):
+    resp = [None]
+    done = threading.Event()
+    def cb(r):
+        resp[0] = r
+        done.set()
+    sio.emit(event, data or {}, callback=cb)
+    if not done.wait(15):
+        raise TimeoutError(f"No response for '{event}'")
+    return resp[0]
 
 try:
-    api.login(os.environ["KUMA_USERNAME"], os.environ["KUMA_PASSWORD"])
+    r = _call("login", {"username": USERNAME, "password": PASSWORD, "token": ""})
+    if not r or not r.get("ok"):
+        print(f"[✗] Auth failed: {r.get('msg', r) if r else 'no response'}", file=sys.stderr)
+        sys.exit(1)
     print("[✓] Authenticated.")
 
-    monitors = api.get_monitors()
-    existing = {m["name"] for m in monitors}
+    _monitor_list_ready.wait(5)  # Kuma pushes monitorList after login
 
-    def add_http(name, url):
+    def add_monitor(**data):
+        name = data["name"]
         if name in existing:
             print(f"[=] Skip (exists): {name}")
             return
-        r = api.add_monitor(
-            type=MonitorType.HTTP,
-            name=name,
-            url=url,
-            interval=60,
-            maxretries=3,
-            conditions=[],
-        )
-        print(f"[✓] Added: {name} (id={r.get('monitorID', '?')})")
+        r = _call("add", data)
+        if r and r.get("ok"):
+            print(f"[✓] Added: {name} (id={r.get('monitorID', '?')})")
+        else:
+            msg = r.get("msg", str(r)) if r else "no response"
+            print(f"[✗] Failed to add {name}: {msg}", file=sys.stderr)
 
-    def add_tcp(name, hostname, port):
-        if name in existing:
-            print(f"[=] Skip (exists): {name}")
-            return
-        r = api.add_monitor(
-            type=MonitorType.PORT,
-            name=name,
-            hostname=hostname,
-            port=port,
-            interval=60,
-            maxretries=3,
-            conditions=[],
-        )
-        print(f"[✓] Added: {name} (id={r.get('monitorID', '?')})")
+    HTTP = dict(method="GET", interval=60, maxretries=3, timeout=30, conditions=[])
+    TCP  = dict(interval=60, maxretries=3, timeout=30, conditions=[])
 
     print("[*] Adding HTTP monitors...")
 
     # Dashboard / UI services
-    add_http("Homepage",          "http://homepage:3000")
-    add_http("Grafana",           "http://grafana:3000")
-    add_http("Portainer",         "http://portainer:9000")
-    add_http("Speedtest Tracker", "http://speedtest-tracker:80")
-    add_http("AdGuard",           "http://adguard:80")
+    add_monitor(type="http", name="Homepage",          url="http://homepage:3000",              **HTTP)
+    add_monitor(type="http", name="Grafana",           url="http://grafana:3000",               **HTTP)
+    add_monitor(type="http", name="Portainer",         url="http://portainer:9000",             **HTTP)
+    add_monitor(type="http", name="Speedtest Tracker", url="http://speedtest-tracker:80",       **HTTP)
+    add_monitor(type="http", name="AdGuard",           url="http://adguard:80",                 **HTTP)
 
     # Home Assistant is on the host network — use the Pi's static IP
-    add_http("Home Assistant",    "http://192.168.6.59:8123")
+    add_monitor(type="http", name="Home Assistant",    url="http://192.168.6.59:8123",          **HTTP)
 
     # Observability stack
-    add_http("Prometheus",        "http://prometheus:9090/-/healthy")
-    add_http("Node Exporter",     "http://node-exporter:9100/metrics")
-    add_http("cAdvisor",          "http://cadvisor:8080")
+    add_monitor(type="http", name="Prometheus",        url="http://prometheus:9090/-/healthy",  **HTTP)
+    add_monitor(type="http", name="Node Exporter",     url="http://node-exporter:9100/metrics", **HTTP)
+    add_monitor(type="http", name="cAdvisor",          url="http://cadvisor:8080",              **HTTP)
 
     # Reverse proxy
-    add_http("Caddy",             "http://caddy-proxy:80")
+    add_monitor(type="http", name="Caddy",             url="http://caddy-proxy:80",             **HTTP)
 
     print("[*] Adding TCP monitors...")
 
     # Loki uses a distroless image (no shell/wget), so no HTTP health endpoint is available.
     # Port 3100 is the gRPC + HTTP API port; a TCP check confirms the process is listening.
-    add_tcp("Loki", "loki", 3100)
+    add_monitor(type="port", name="Loki", hostname="loki", port=3100, **TCP)
 
     print("[✓] All monitors configured.")
 
@@ -119,7 +135,7 @@ except Exception as e:
     sys.exit(1)
 finally:
     try:
-        api.disconnect()
+        sio.disconnect()
     except Exception:
         pass
 PYEOF
@@ -133,6 +149,6 @@ docker run --rm \
   -e KUMA_USERNAME="$KUMA_USERNAME" \
   -e KUMA_PASSWORD="$KUMA_PASSWORD" \
   python:3-slim \
-  sh -c "pip install uptime-kuma-api --quiet && python3 /setup.py"
+  sh -c "pip install 'python-socketio[client]' --quiet && python3 /setup.py"
 
 echo "===== Setup complete: $(date) ====="
