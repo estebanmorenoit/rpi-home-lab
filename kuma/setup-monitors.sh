@@ -124,6 +124,9 @@ try:
     # Reverse proxy
     add_monitor(type="http", name="Caddy",             url="http://caddy-proxy:80",             **HTTP)
 
+    # External sites
+    add_monitor(type="http", name="Portfolio",         url="https://estebanmoreno.link/",       **HTTP)
+
     print("[*] Adding TCP monitors...")
 
     # Loki uses a distroless image (no shell/wget), so no HTTP health endpoint is available.
