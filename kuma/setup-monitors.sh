@@ -99,8 +99,10 @@ try:
             msg = r.get("msg", str(r)) if r else "no response"
             print(f"[✗] Failed to add {name}: {msg}", file=sys.stderr)
 
-    HTTP = dict(method="GET", interval=60, maxretries=3, timeout=30, conditions=[])
-    TCP  = dict(interval=60, maxretries=3, timeout=30, conditions=[])
+    HTTP = dict(method="GET", interval=60, maxretries=3, timeout=30,
+                accepted_statuscodes=["200-299"], conditions=[], notificationIDList={})
+    TCP  = dict(interval=60, maxretries=3, timeout=30,
+                accepted_statuscodes=["200-299"], conditions=[], notificationIDList={})
 
     print("[*] Adding HTTP monitors...")
 
