@@ -9,6 +9,7 @@ services:
     image: ghcr.io/home-assistant/home-assistant:2026.4
     container_name: homeassistant
     restart: unless-stopped
+    mem_limit: 512m
     volumes:
       - ./homeassistant:/config
     privileged: true  # Required for device/USB access; scope with devices: if possible
@@ -28,6 +29,7 @@ services:
     image: adguard/adguardhome:v0.107.74
     container_name: adguard
     restart: unless-stopped
+    mem_limit: 128m
     volumes:
       - adguard-config:/opt/adguardhome
     ports:
@@ -55,6 +57,8 @@ services:
   prometheus:
     image: prom/prometheus:v3.11.2
     container_name: prometheus
+    restart: unless-stopped
+    mem_limit: 200m
     volumes:
       - ./prometheus:/etc/prometheus:ro
       - prometheus-storage:/prometheus
@@ -64,7 +68,6 @@ services:
       - '--storage.tsdb.path=/prometheus'
     # ports:
     #   - "9090:9090"
-    restart: unless-stopped
     environment:
       - TZ=${TZ}
     healthcheck:
@@ -81,9 +84,10 @@ services:
   node-exporter:
     image: prom/node-exporter:v1.11.1
     container_name: node-exporter
+    restart: unless-stopped
+    mem_limit: 32m
     # ports:
     #   - "9100:9100"
-    restart: unless-stopped
     environment:
       - TZ=${TZ}
     read_only: true
@@ -103,6 +107,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: cadvisor
     restart: unless-stopped
+    mem_limit: 128m
     # ports:
     #   - "8081:8080"
     volumes:
@@ -121,6 +126,7 @@ services:
     image: grafana/grafana:13.0.1
     container_name: grafana
     restart: unless-stopped
+    mem_limit: 512m
     # ports:
     #   - "3001:3000"
     volumes:
@@ -151,11 +157,12 @@ services:
   loki:
     image: grafana/loki:3.7.1
     container_name: loki
+    restart: unless-stopped
+    mem_limit: 300m
     command: -config.file=/etc/loki/config.yaml
     volumes:
       - ./loki/local-config.yaml:/etc/loki/config.yaml:ro
       - ./loki/chunks:/loki/chunks
-    restart: unless-stopped
     # Loki 3.7+ uses a distroless image (no shell/wget/curl).
     # No healthcheck is possible without external tooling; dependents use service_started.
     healthcheck:
@@ -169,6 +176,8 @@ services:
   promtail:
     image: grafana/promtail:3.6.10
     container_name: promtail
+    restart: unless-stopped
+    mem_limit: 64m
     volumes:
       - /var/log:/var/log:ro
       - /etc/machine-id:/etc/machine-id
@@ -178,7 +187,6 @@ services:
     environment:
       - TZ=${TZ}
     command: -config.file=/etc/promtail-config/promtail.yaml
-    restart: unless-stopped
     depends_on:
       loki:
         condition: service_started
@@ -192,6 +200,7 @@ services:
     image: louislam/uptime-kuma:2.2.1
     container_name: uptime-kuma
     restart: unless-stopped
+    mem_limit: 192m
     # ports:
     #   - "3003:3001"
     volumes:
@@ -210,6 +219,7 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:1.14.0
     container_name: speedtest-tracker
     restart: unless-stopped
+    mem_limit: 128m
     # ports:
     #   - "8765:80"   # Custom HTTP port (change if using HTTPS or want to expose 443 too)
     #   - "8443:443"  # Optional: expose HTTPS port if needed
@@ -238,13 +248,14 @@ services:
   portainer:
     image: portainer/portainer-ce:2.40.0
     container_name: portainer
+    restart: unless-stopped
+    mem_limit: 96m
     # Port 9000 is accessible via Caddy at http://portainer.home
     # ports:
     #   - "9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer-storage:/data
-    restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -270,6 +281,8 @@ services:
   homepage:
     image: ghcr.io/gethomepage/homepage:v1.12.3
     container_name: homepage
+    restart: unless-stopped
+    mem_limit: 192m
     volumes:
       # - homepage-storage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
@@ -283,7 +296,6 @@ services:
       - ./homepage/custom.js:/app/config/custom.js:ro
     # ports:
     #   - "3002:3000"
-    restart: unless-stopped
     environment:
       - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_ALLOWED_HOSTS}
       - TZ=${TZ}
@@ -313,6 +325,7 @@ services:
     image: caddy:2.11.2
     container_name: caddy-proxy
     restart: unless-stopped
+    mem_limit: 64m
     dns:
       - 127.0.0.11  # Force Docker's internal DNS, prevents AdGuard port 53 interference
     ports:
