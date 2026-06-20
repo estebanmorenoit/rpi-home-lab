@@ -9,7 +9,7 @@ services:
     image: ghcr.io/home-assistant/home-assistant:2026.4
     container_name: homeassistant
     restart: unless-stopped
-    mem_limit: 512m
+    mem_limit: 768m
     volumes:
       - ./homeassistant:/config
     privileged: true  # Required for device/USB access; scope with devices: if possible
@@ -31,7 +31,8 @@ services:
     restart: unless-stopped
     mem_limit: 128m
     volumes:
-      - adguard-config:/opt/adguardhome
+      - ./adguard/conf:/opt/adguardhome/conf
+      - adguard-work:/opt/adguardhome/work
     ports:
       - "8080:80"
       # "3000:3000" is the AdGuard setup wizard — removed after initial setup
@@ -58,7 +59,7 @@ services:
     image: prom/prometheus:v3.11.2
     container_name: prometheus
     restart: unless-stopped
-    mem_limit: 200m
+    mem_limit: 256m
     volumes:
       - ./prometheus:/etc/prometheus:ro
       - prometheus-storage:/prometheus
@@ -126,7 +127,7 @@ services:
     image: grafana/grafana:13.0.1
     container_name: grafana
     restart: unless-stopped
-    mem_limit: 512m
+    mem_limit: 768m
     # ports:
     #   - "3001:3000"
     volumes:
@@ -158,7 +159,7 @@ services:
     image: grafana/loki:3.7.1
     container_name: loki
     restart: unless-stopped
-    mem_limit: 300m
+    mem_limit: 192m
     command: -config.file=/etc/loki/config.yaml
     volumes:
       - ./loki/local-config.yaml:/etc/loki/config.yaml:ro
@@ -219,7 +220,7 @@ services:
     image: lscr.io/linuxserver/speedtest-tracker:1.14.0
     container_name: speedtest-tracker
     restart: unless-stopped
-    mem_limit: 128m
+    mem_limit: 192m
     # ports:
     #   - "8765:80"   # Custom HTTP port (change if using HTTPS or want to expose 443 too)
     #   - "8443:443"  # Optional: expose HTTPS port if needed
@@ -249,7 +250,7 @@ services:
     image: portainer/portainer-ce:2.40.0
     container_name: portainer
     restart: unless-stopped
-    mem_limit: 96m
+    mem_limit: 64m
     # Port 9000 is accessible via Caddy at http://portainer.home
     # ports:
     #   - "9000:9000"
@@ -282,7 +283,7 @@ services:
     image: ghcr.io/gethomepage/homepage:v1.12.3
     container_name: homepage
     restart: unless-stopped
-    mem_limit: 192m
+    mem_limit: 128m
     volumes:
       # - homepage-storage:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
@@ -325,7 +326,7 @@ services:
     image: caddy:2.11.2
     container_name: caddy-proxy
     restart: unless-stopped
-    mem_limit: 64m
+    mem_limit: 96m
     dns:
       - 127.0.0.11  # Force Docker's internal DNS, prevents AdGuard port 53 interference
     ports:
@@ -403,6 +404,6 @@ volumes:
   prometheus-storage:
   uptime-kuma-storage:
   portainer-storage:
-  adguard-config:
+  adguard-work:
   speedtest_config:
   promtail-positions:
