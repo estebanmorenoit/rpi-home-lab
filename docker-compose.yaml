@@ -27,7 +27,7 @@ services:
 
   # AdGuard Home (DNS + DHCP)
   adguard:
-    image: adguard/adguardhome:v0.107.74
+    image: adguard/adguardhome:v0.107.79
     container_name: adguard
     restart: unless-stopped
     mem_limit: 128m
