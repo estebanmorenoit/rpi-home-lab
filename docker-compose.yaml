@@ -205,7 +205,7 @@ services:
 
   # Uptime Kuma (self-hosted uptime monitor)
   uptime-kuma:
-    image: louislam/uptime-kuma:2.2.1
+    image: louislam/uptime-kuma:2.5.3
     container_name: uptime-kuma
     restart: unless-stopped
     mem_limit: 192m
