@@ -266,7 +266,7 @@ services:
 
   # Portainer (UI for Docker)
   portainer:
-    image: portainer/portainer-ce:2.40.0
+    image: portainer/portainer-ce:2.45.0
     container_name: portainer
     restart: unless-stopped
     mem_limit: 64m
