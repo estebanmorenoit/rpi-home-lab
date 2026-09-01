@@ -128,7 +128,7 @@ services:
 
   # Grafana (dashboards)
   grafana:
-    image: grafana/grafana:13.0.1
+    image: grafana/grafana:13.2.1
     container_name: grafana
     restart: unless-stopped
     mem_limit: 768m
