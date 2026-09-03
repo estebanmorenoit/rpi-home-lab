@@ -347,7 +347,7 @@ services:
 
   # Caddy (HTTPS reverse proxy)
   caddy:
-    image: caddy:2.11.2
+    image: caddy:2.11.4
     container_name: caddy-proxy
     restart: unless-stopped
     mem_limit: 96m
