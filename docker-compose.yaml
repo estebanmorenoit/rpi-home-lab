@@ -230,7 +230,7 @@ services:
 
   # Speedtest Tracker
   speedtest-tracker:
-    image: lscr.io/linuxserver/speedtest-tracker:1.14.0
+    image: lscr.io/linuxserver/speedtest-tracker:1.15.0
     container_name: speedtest-tracker
     restart: unless-stopped
     mem_limit: 192m
