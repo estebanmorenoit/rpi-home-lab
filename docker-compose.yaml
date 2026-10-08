@@ -181,7 +181,7 @@ services:
 
   # Promtail (log collector)
   promtail:
-    image: grafana/promtail:3.6.10
+    image: grafana/promtail:3.6.11
     container_name: promtail
     restart: unless-stopped
     mem_limit: 64m
